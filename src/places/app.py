@@ -88,11 +88,11 @@ def patch_place(
     if lat is not None:
         if "pos" not in new_place_dict:
             new_place_dict["pos"] = {}
-        new_place_dict["pos"]["lat"] = lat
+        new_place_dict["pos"][0] = lat
     if lng is not None:
         if "pos" not in new_place_dict:
             new_place_dict["pos"] = {}
-        new_place_dict["pos"]["lng"] = lng
+        new_place_dict["pos"][1] = lng
 
     if not new_place_dict:
         raise HTTPException(status_code=409, detail="No new parameters were supplied")

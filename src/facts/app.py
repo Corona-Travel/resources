@@ -114,14 +114,14 @@ def put_fact(
 
     result = facts_collection.replace_one(
         {"fact_id": fact_id},
-        {"fact_id": fact_id, "name": fact.name, "description": fact.description, "pos": fact.pos.dict()},
+        {"fact_id": fact_id, "name": fact.name, "description": fact.description, "pos": {"lan": fact.pos[0], "lng": fact.pos[1]}},
     )
 
     if result.matched_count != 1:
         raise HTTPException(
             status_code=404, detail="Fact with specified ID was not found"
         )
-    return {"fact_id": fact_id, "name": fact.name, "description": fact.description, "pos": fact.pos.dict()}
+    return {"fact_id": fact_id, "name": fact.name, "description": fact.description, "pos": {"lan": fact.pos[0], "lng": fact.pos[1]}}
 
 
 @app.delete("/fact/{fact_id}", tags=["resource:facts"])

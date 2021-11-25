@@ -9,7 +9,7 @@ class Position(BaseModel):
 
 class PlaceWithoutID(BaseModel):
     name: str
-    pos: Position
+    pos: tuple[float, float]
 
     class Config:
         schema_extra = {

@@ -4,7 +4,7 @@ from pydantic import BaseModel
 class FactWithoutId(BaseModel):
     name: str
     description: str
-    pos: Position
+    pos: tuple[float, float]
 
     class Config:
         schema_extra = {
