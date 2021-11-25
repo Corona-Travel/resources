@@ -82,12 +82,12 @@ def patch_fact(
         new_fact_dict["description"] = description
     if lat is not None:
         if "pos" not in new_fact_dict:
-            new_fact_dict["pos"] = {}
-        new_fact_dict["pos"]["lat"] = lat
+            new_fact_dict["pos"] = tuple()
+        new_fact_dict["pos"][0] = lat
     if lng is not None:
         if "pos" not in new_fact_dict:
-            new_fact_dict["pos"] = {}
-        new_fact_dict["pos"]["lng"] = lng
+            new_fact_dict["pos"] = tuple()
+        new_fact_dict["pos"][1] = lng
 
     if not new_fact_dict:
         raise HTTPException(status_code=409, detail="No new parameters were supplied")

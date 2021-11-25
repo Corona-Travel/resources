@@ -1,10 +1,4 @@
-from typing import List
 from pydantic import BaseModel
-
-
-class Position(BaseModel):
-    lat: float
-    lng: float
 
 
 class FactWithoutId(BaseModel):
@@ -37,9 +31,9 @@ class Fact(FactWithoutId):
                     "lng": -0.118092
                 },
                 "description": "London is the capital of Great Britain",
-                "fact_id": "lond_fact"
+                "fact_id": "london_fact"
             }
         }
 
 
-Facts = List[Fact]
+Facts = list[Fact]

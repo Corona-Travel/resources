@@ -6,6 +6,11 @@ authors = ["unrndm <unrndm@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+uvicorn = "^0.15.0"
+fastapi = "^0.70.0"
+pydantic = {extras = ["dotenv"], version = "^1.8.2"}
+reusable_mongodb_connection = { git = "https://github.com/Corona-Travel/reusable_mongodb_connection.git", branch = "main" }
+pymongo = "^3.12.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
