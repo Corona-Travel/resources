@@ -1,0 +1,9 @@
+# IDE
+/.idea/
+/.venv/
+
+# cache
+/**/__pycache__/
+
+# temporary files
+/requirements.txt
