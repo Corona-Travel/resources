@@ -227,14 +227,18 @@ python-versions = "^3.9"
 develop = false
 
 [package.dependencies]
+fastapi = {version = "^0.70.0", optional = true}
 pydantic = "^1.8.2"
 pymongo = "^3.12.1"
+
+[package.extras]
+fastapi = ["fastapi (>=0.70.0,<0.71.0)"]
 
 [package.source]
 type = "git"
 url = "https://github.com/Corona-Travel/reusable_mongodb_connection.git"
 reference = "main"
-resolved_reference = "01a5837525820b2abadba1d841703c296b45aa1f"
+resolved_reference = "9b638d6e8fbef8af96fef954e6a75aee316a9f28"
 
 [[package]]
 name = "sniffio"
@@ -293,7 +297,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "07967faa45412d64da7f7113581cbd6545ed9e8b310403c2b86aaef3dd24ce56"
+content-hash = "22c8813b2c145a49280f0f68b99da387811aec0e17feecad438ed3c3c1afdd97"
 
 [metadata.files]
 anyio = [

@@ -2,6 +2,7 @@ from typing import Optional, Any
 
 from fastapi import FastAPI, HTTPException, Depends
 from reusable_mongodb_connection import get_db
+from reusable_mongodb_connection.fastapi import get_collection
 
 from .types import Fact, FactWithoutId, Facts
 from .settings import Settings, get_settings
@@ -29,7 +30,7 @@ def get_facts_collection(mongo_url: Any):
 
 @app.get("/facts", response_model=Facts, tags=["resource:facts"])
 def get_facts(settings: Settings = Depends(get_settings)):
-    facts_collection = get_facts_collection(settings.mongo_url)
+    facts_collection = get_collection(settings.mongo_url, "facts")
     facts = facts_collection.find({})
 
     res = []
