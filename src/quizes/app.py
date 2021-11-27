@@ -1,4 +1,4 @@
-from typing import Optional, Any
+from typing import Any
 
 from fastapi import FastAPI, HTTPException, Depends
 from reusable_mongodb_connection import get_db
@@ -24,7 +24,7 @@ def get_quizzes_collection(mongo_url: Any):
         print(f"Exception: {e}")
         raise HTTPException(status_code=500, detail="Connection to DB was unsuccessful")
 
-    if "quizes" not in db.list_collection_names():
+    if "quizzes" not in db.list_collection_names():
         print("Collection not found")
         raise HTTPException(
             status_code=500,

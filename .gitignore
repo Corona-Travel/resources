@@ -7,3 +7,7 @@
 
 # temporary files
 /requirements.txt
+
+# for local testing only
+compose.yaml
+mongo-init.js

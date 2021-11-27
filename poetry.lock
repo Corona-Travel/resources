@@ -238,7 +238,7 @@ fastapi = ["fastapi (>=0.70.0,<0.71.0)"]
 type = "git"
 url = "https://github.com/Corona-Travel/reusable_mongodb_connection.git"
 reference = "main"
-resolved_reference = "9b638d6e8fbef8af96fef954e6a75aee316a9f28"
+resolved_reference = "1bc5a2db910c9a0095a906da13aeb813eb2a7bb2"
 
 [[package]]
 name = "sniffio"

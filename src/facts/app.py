@@ -1,37 +1,24 @@
-from typing import Optional, Any
+from logging import getLogger
+from typing import Optional
 
-from fastapi import FastAPI, HTTPException, Depends
-from reusable_mongodb_connection import get_db
+from fastapi import FastAPI, HTTPException, Depends, Query
 from reusable_mongodb_connection.fastapi import get_collection
 
-from .types import Fact, FactWithoutId, Facts
+from .types import Fact, FactWithoutId, Facts, Position
 from .settings import Settings, get_settings
 
 app = FastAPI(openapi_tags=[{"name": "resource:facts"}])
 
-
-def get_facts_collection(mongo_url: Any):
-    try:
-        db = get_db(mongo_url)
-    except Exception as e:
-        print("Connection to DB was unsuccesfull")
-        print(f"Exception: {e}")
-        raise HTTPException(status_code=500, detail="Connection to DB was unsuccesfull")
-
-    if "facts" not in db.list_collection_names():
-        print("Collection not found")
-        raise HTTPException(
-            status_code=500,
-            detail="Collection not found",
-        )
-
-    return db.facts
+logger = getLogger("facts")
+logger.setLevel(get_settings().log_level)
 
 
 @app.get("/facts", response_model=Facts, tags=["resource:facts"])
 def get_facts(settings: Settings = Depends(get_settings)):
     facts_collection = get_collection(settings.mongo_url, "facts")
     facts = facts_collection.find({})
+
+    logger.debug("getting facts: %s", facts)
 
     res = []
     for f in facts:
@@ -76,24 +63,24 @@ def patch_fact(
     lng: Optional[float] = None,
     settings: Settings = Depends(get_settings),
 ):
+    if (name is not None) or (description is not None) or (lat is not None) or (lng is not None):
+        raise HTTPException(status_code=409, detail="No new parameters were supplied")
+
+    facts_collection = get_collection(settings.mongo_url, "facts")
+    old_fact_pos = facts_collection.find_one({"fact_id": fact_id})["pos"]
+
     new_fact_dict = {}
     if name is not None:
         new_fact_dict["name"] = name
     if description is not None:
         new_fact_dict["description"] = description
-    if lat is not None:
-        if "pos" not in new_fact_dict:
-            new_fact_dict["pos"] = tuple()
-        new_fact_dict["pos"][0] = lat
-    if lng is not None:
-        if "pos" not in new_fact_dict:
-            new_fact_dict["pos"] = tuple()
-        new_fact_dict["pos"][1] = lng
-
-    if not new_fact_dict:
-        raise HTTPException(status_code=409, detail="No new parameters were supplied")
-
-    facts_collection = get_facts_collection(settings.mongo_url)
+    if (lat is not None) or (lng is not None):
+        new_pos = list(old_fact_pos)
+        if lat is not None:
+            new_pos[0] = lat
+        if lng is not None:
+            new_pos[1] = lng
+        new_fact_dict["pos"] = tuple(new_pos)
 
     result = facts_collection.update_one({"fact_id": fact_id}, {"$set": new_fact_dict})
 
@@ -103,6 +90,7 @@ def patch_fact(
         )
     if result.modified_count != 1:
         raise HTTPException(status_code=409, detail="No new parameters were supplied")
+
     new_fact = facts_collection.find_one({"fact_id": fact_id})
     return Fact(**new_fact)
 
@@ -115,19 +103,29 @@ def put_fact(
 
     result = facts_collection.replace_one(
         {"fact_id": fact_id},
-        {"fact_id": fact_id, "name": fact.name, "description": fact.description, "pos": {"lan": fact.pos[0], "lng": fact.pos[1]}},
+        {
+            "fact_id": fact_id,
+            "name": fact.name,
+            "description": fact.description,
+            "pos": {"lan": fact.pos[0], "lng": fact.pos[1]},
+        },
     )
 
     if result.matched_count != 1:
         raise HTTPException(
             status_code=404, detail="Fact with specified ID was not found"
         )
-    return {"fact_id": fact_id, "name": fact.name, "description": fact.description, "pos": {"lan": fact.pos[0], "lng": fact.pos[1]}}
+    return {
+        "fact_id": fact_id,
+        "name": fact.name,
+        "description": fact.description,
+        "pos": {"lan": fact.pos[0], "lng": fact.pos[1]},
+    }
 
 
 @app.delete("/fact/{fact_id}", tags=["resource:facts"])
 def delete_fact(fact_id: str, settings: Settings = Depends(get_settings)):
-    facts_collection = get_facts_collection(settings.mongo_url)
+    facts_collection = get_collection(settings.mongo_url, "facts")
 
     res = facts_collection.delete_one({"fact_id": fact_id})
 

@@ -13,13 +13,7 @@ class PlaceWithoutID(BaseModel):
 
     class Config:
         schema_extra = {
-            'example': {
-                "name": "London",
-                "pos": {
-                    "lat": 51.509865,
-                    "lng": -0.118092
-                }
-            }
+            "example": {"name": "London", "pos": {"lat": 51.509865, "lng": -0.118092}}
         }
 
 
@@ -28,13 +22,10 @@ class Place(PlaceWithoutID):
 
     class Config:
         schema_extra = {
-            'example': {
+            "example": {
                 "name": "London",
-                "pos": {
-                    "lat": 51.509865,
-                    "lng": -0.118092
-                },
-                "place_id": "lond"
+                "pos": {"lat": 51.509865, "lng": -0.118092},
+                "place_id": "lond",
             }
         }
 
