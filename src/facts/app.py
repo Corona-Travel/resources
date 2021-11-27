@@ -44,7 +44,7 @@ def get_facts(settings: Settings = Depends(get_settings)):
 
 @app.post("/facts", tags=["resource:facts"])
 def post_fact(fact: Fact, settings: Settings = Depends(get_settings)):
-    facts_collection = get_facts_collection(settings.mongo_url)
+    facts_collection = get_collection(settings.mongo_url, "facts")
 
     fact_with_same_id = facts_collection.find_one({"fact_id": fact.fact_id})
 
@@ -56,7 +56,7 @@ def post_fact(fact: Fact, settings: Settings = Depends(get_settings)):
 
 @app.get("/facts/{fact_id}", response_model=Fact, tags=["resource:facts"])
 def get_fact_by_id(fact_id: str, settings: Settings = Depends(get_settings)):
-    facts_collection = get_facts_collection(settings.mongo_url)
+    facts_collection = get_collection(settings.mongo_url, "facts")
 
     fact = facts_collection.find_one({"fact_id": fact_id})
 
@@ -111,7 +111,7 @@ def patch_fact(
 def put_fact(
     fact_id: str, fact: FactWithoutId, settings: Settings = Depends(get_settings)
 ):
-    facts_collection = get_facts_collection(settings.mongo_url)
+    facts_collection = get_collection(settings.mongo_url, "facts")
 
     result = facts_collection.replace_one(
         {"fact_id": fact_id},

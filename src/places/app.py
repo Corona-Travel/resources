@@ -1,7 +1,7 @@
-from typing import Optional, Any
+from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Depends
-from reusable_mongodb_connection import get_db
+from reusable_mongodb_connection.fastapi import get_collection
 
 from .types import Place, PlaceWithoutID, Places
 from .settings import Settings, get_settings
@@ -15,26 +15,9 @@ app = FastAPI(
 )
 
 
-def get_places_collection(mongo_url: Any):
-    try:
-        db = get_db(mongo_url)
-    except Exception as e:
-        print("Connection to DB was unsuccessful")
-        print(f"Exception: {e}")
-        raise HTTPException(status_code=500, detail="Connection to DB was unsuccessful")
-
-    if "places" not in db.list_collection_names():
-        print("Collection not found")
-        raise HTTPException(
-            status_code=500,
-            detail="Collection not found",
-        )
-    return db.places
-
-
 @app.get("/places", response_model=Places, tags=["resource:places"])
 def get_places(settings: Settings = Depends(get_settings)):
-    place_collection = get_places_collection(settings.mongo_url)
+    place_collection = get_collection(settings.mongo_url, "places")
 
     markers = place_collection.find({})
 
@@ -49,7 +32,7 @@ def get_places(settings: Settings = Depends(get_settings)):
 
 @app.post("/places", tags=["resource:places"])
 def post_place(place: Place, settings: Settings = Depends(get_settings)):
-    place_collection = get_places_collection(settings.mongo_url)
+    place_collection = get_collection(settings.mongo_url, "places")
 
     place_with_same_id = place_collection.find_one({"place_id": place.place_id})
 
@@ -61,7 +44,7 @@ def post_place(place: Place, settings: Settings = Depends(get_settings)):
 
 @app.get("/places/{place_id}", response_model=Place, tags=["resource:places"])
 def get_places_by_id(place_id: str, settings: Settings = Depends(get_settings)):
-    collection = get_places_collection(settings.mongo_url)
+    collection = get_collection(settings.mongo_url, "places")
 
     place = collection.find_one({"place_id": place_id})
 
@@ -80,19 +63,20 @@ def patch_place(
     lng: Optional[float] = None,
     settings: Settings = Depends(get_settings),
 ):
-    places_collection = get_places_collection(settings.mongo_url)
+    places_collection = get_collection(settings.mongo_url, "places")
+
+    old_place = places_collection.find_one({"place_id": place_id})
 
     new_place_dict = {}
     if name is not None:
         new_place_dict["name"] = name
-    if lat is not None:
-        if "pos" not in new_place_dict:
-            new_place_dict["pos"] = {}
-        new_place_dict["pos"][0] = lat
-    if lng is not None:
-        if "pos" not in new_place_dict:
-            new_place_dict["pos"] = {}
-        new_place_dict["pos"][1] = lng
+    if (lat is not None) or (lng is not None):
+        new_pos = list(old_place)
+        if lat is not None:
+            new_pos[0] = lat
+        if lng is not None:
+            new_pos[1] = lng
+        new_place_dict["pos"] = tuple(new_pos)
 
     if not new_place_dict:
         raise HTTPException(status_code=409, detail="No new parameters were supplied")
@@ -113,7 +97,7 @@ def patch_place(
 def put_place(
     place_id: str, place: PlaceWithoutID, settings: Settings = Depends(get_settings)
 ):
-    places_collection = get_places_collection(settings.mongo_url)
+    places_collection = get_collection(settings.mongo_url, "places")
 
     res = places_collection.update_one({"place_id": place_id}, {"$set": place.dict()})
 
@@ -127,7 +111,7 @@ def put_place(
 
 @app.delete("/places/{place_id}", tags=["resource:places"])
 def delete_place(place_id: str, settings: Settings = Depends(get_settings)):
-    places_collection = get_places_collection(settings.mongo_url)
+    places_collection = get_collection(settings.mongo_url, "places")
 
     res = places_collection.delete_one({"place_id": place_id})
 
