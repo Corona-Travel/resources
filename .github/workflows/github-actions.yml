@@ -15,9 +15,9 @@ jobs:
 
       - name: Build image
         run: |
-          for NAME in *
+          for NAME in *;
           do
-            docker build . --file Dockerfile --tag $NAME --label "runnumber=${GITHUB_RUN_ID}" --build-arg APP=$NAME
+            docker build . --file Dockerfile --tag $NAME --label "runnumber=${GITHUB_RUN_ID}" --build-arg APP=$NAME;
           done
 
       - name: Log in to registry
