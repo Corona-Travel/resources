@@ -1,12 +1,5 @@
 FROM python:3.9-slim
 
-ARG APP="app"
-
-ENV SRC_PATH="./src/$APP"
-ENV APP_PATH="./$APP"
-ENV ASGI_APP="$APP.app:app"
-ENV ASGI_APP_ENV=$ASGI_APP
-
 EXPOSE 1234
 
 WORKDIR /corona_travel
@@ -20,6 +13,12 @@ COPY pyproject.toml .
 COPY poetry.lock .
 RUN poetry config --local virtualenvs.create false
 RUN poetry install
+
+ARG SRC_PATH="./src/app"
+ARG APP_PATH="./app"
+ARG ASGI_APP="app:app"
+
+ENV ASGI_APP_ENV=$ASGI_APP
 
 # RUN pip install fastapi uvicorn git+https://github.com/Corona-Travel/reusable_mongodb_connection.git@main
 
