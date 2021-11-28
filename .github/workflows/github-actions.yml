@@ -18,7 +18,9 @@ jobs:
           for NAME in $(ls ./src);
           do
             docker build . --file Dockerfile --tag ${NAME} --label "runnumber=${GITHUB_RUN_ID}" \
-            --build-arg SRC_PATH="./src/${NAME}" APP_PATH="./${NAME}" ASGI_APP="${NAME}.app:app";
+            --build-arg SRC_PATH="./src/${NAME}" \
+            --build-arg APP_PATH="./${NAME}" \
+            --build-arg ASGI_APP="${NAME}.app:app";
           done
 
       - name: Log in to registry
