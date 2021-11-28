@@ -1,9 +1,10 @@
 FROM python:3.9-slim
 
-ARG SRC_PATH="./src/app"
-ARG APP_PATH="./app"
-ARG ASGI_APP="app:app"
+ARG APP="app"
 
+ENV SRC_PATH="./src/$APP"
+ENV APP_PATH="./$APP"
+ENV ASGI_APP="$APP:$APP"
 ENV ASGI_APP_ENV=$ASGI_APP
 
 EXPOSE 1234
