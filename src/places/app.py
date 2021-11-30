@@ -65,13 +65,13 @@ def patch_place(
 ):
     places_collection = get_collection(settings.mongo_url, "places")
 
-    old_place = places_collection.find_one({"place_id": place_id})
+    old_pos = places_collection.find_one({"place_id": place_id})["pos"]
 
     new_place_dict = {}
     if name is not None:
         new_place_dict["name"] = name
     if (lat is not None) or (lng is not None):
-        new_pos = list(old_place)
+        new_pos = list(old_pos)
         if lat is not None:
             new_pos[0] = lat
         if lng is not None:
