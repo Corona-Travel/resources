@@ -1,5 +1,10 @@
-from typing import List
+from typing import NamedTuple
 from pydantic import BaseModel
+
+
+class Position(NamedTuple):
+    lat: float
+    lng: float
 
 
 class OptionWithoutAnswer(BaseModel):
@@ -12,18 +17,18 @@ class OptionWithAnswer(OptionWithoutAnswer):
 
 class QuestionWithoutAnswer(BaseModel):
     task: str
-    answers: List[OptionWithoutAnswer]
+    answers: list[OptionWithoutAnswer]
 
 
 class QuestionWithAnswer(BaseModel):
     task: str
-    answers: List[OptionWithAnswer]
+    answers: list[OptionWithAnswer]
 
 
 class QuizWithoutAnswerWithoutId(BaseModel):
     name: str
-    pos: tuple[float, float]
-    questions: List[QuestionWithoutAnswer]
+    pos: Position
+    questions: list[QuestionWithoutAnswer]
 
 
 class QuizWithoutAnswer(QuizWithoutAnswerWithoutId):
@@ -32,8 +37,8 @@ class QuizWithoutAnswer(QuizWithoutAnswerWithoutId):
 
 class QuizWithAnswerWithoutId(BaseModel):
     name: str
-    pos: tuple[float, float]
-    questions: List[QuestionWithAnswer]
+    pos: Position
+    questions: list[QuestionWithAnswer]
 
 
 class QuizWithAnswer(QuizWithAnswerWithoutId):

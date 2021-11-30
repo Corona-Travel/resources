@@ -1,19 +1,24 @@
-from typing import List
+from typing import NamedTuple
 from pydantic import BaseModel
 
 
-class Position(BaseModel):
+class Position(NamedTuple):
     lat: float
     lng: float
 
 
 class PlaceWithoutID(BaseModel):
     name: str
-    pos: tuple[float, float]
+    pos: Position
 
     class Config:
         schema_extra = {
-            "example": {"name": "London", "pos": {"lat": 51.509865, "lng": -0.118092}}
+            "example": {
+                "name": "London",
+                "pos": (
+                    51.509865, -0.118092
+                ),
+            },
         }
 
 
@@ -24,10 +29,10 @@ class Place(PlaceWithoutID):
         schema_extra = {
             "example": {
                 "name": "London",
-                "pos": {"lat": 51.509865, "lng": -0.118092},
+                "pos": (51.509865, -0.118092),
                 "place_id": "lond",
             }
         }
 
 
-Places = List[Place]
+Places = list[Place]
