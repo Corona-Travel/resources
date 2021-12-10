@@ -14,3 +14,5 @@ class MediaWithoutId(BaseModel):
 
 class Media(MediaWithoutId):
     media_id: str
+
+Medias = list[Media]

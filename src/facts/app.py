@@ -3,6 +3,8 @@ from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Depends, Query
 from reusable_mongodb_connection.fastapi import get_collection
+from pymongo import  GEO2D
+from bson.son import SON
 
 from .types import Fact, FactWithoutId, Facts, Position
 from .settings import Settings, get_settings
@@ -123,7 +125,7 @@ def put_fact(
     }
 
 
-@app.delete("/fact/{fact_id}", tags=["resource:facts"])
+@app.delete("/facts/{fact_id}", tags=["resource:facts"])
 def delete_fact(fact_id: str, settings: Settings = Depends(get_settings)):
     facts_collection = get_collection(settings.mongo_url, "facts")
 
@@ -133,3 +135,16 @@ def delete_fact(fact_id: str, settings: Settings = Depends(get_settings)):
         raise HTTPException(
             status_code=404, detail="Fact with specified id was not found"
         )
+
+@app.get("/facts/near/{lat}/{lng}", response_model=Facts, tags=["resource:facts"])
+def get_nearest(lat: float, lng: float, max_dist: Optional[float] = 100, settings: Settings = Depends(get_settings)):
+    facts_collection = get_collection(settings.mongo_url, "facts")
+    facts_collection.create_index([("pos", GEO2D)])
+    nearest = facts_collection.find({"pos": SON([("$near", [lat, lng]), ("$maxDistance", max_dist)])}).limit(3)
+    res = []
+    for fact in nearest:
+        try:
+            res.append(Fact(**fact))
+        except Exception as e:
+            print(str(e))
+    return res

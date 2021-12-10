@@ -1,10 +1,12 @@
-from typing import Any
+from typing import Any, Optional
 
 from fastapi import FastAPI, HTTPException, Depends
 from reusable_mongodb_connection import get_db
 from reusable_mongodb_connection.fastapi import get_collection
+from pymongo import  GEO2D
+from bson.son import SON
 
-from .types import Quizes, QuizWithoutAnswer, QuizWithAnswer, QuizWithAnswerWithoutId
+from .types import Quizes, QuizWithoutAnswer, QuizWithAnswer, QuizWithAnswerWithoutId, QuizesWithoutAnswer
 from .settings import Settings, get_settings
 
 app = FastAPI(
@@ -102,3 +104,16 @@ def delete_quiz(quiz_id: str, settings: Settings = Depends(get_settings)):
         raise HTTPException(
             status_code=404, detail="Quiz with specified ID was not found"
         )
+
+@app.get("/quizzes/near/{lat}/{lng}", response_model=QuizesWithoutAnswer, tags=["resource:facts"])
+def get_nearest(lat: float, lng: float, max_dist: Optional[float] = 100, settings: Settings = Depends(get_settings)):
+    quiz_collection = get_collection(settings.mongo_url, "quizzes")
+    quiz_collection.create_index([("pos", GEO2D)])
+    nearest = quiz_collection.find({"pos": SON([("$near", [lat, lng]), ("$maxDistance", max_dist)])}).limit(3)
+    res = []
+    for quiz in nearest:
+        try:
+            res.append(QuizWithoutAnswer(**quiz))
+        except Exception as e:
+            print(str(e))
+    return res

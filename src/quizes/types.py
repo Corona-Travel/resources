@@ -46,3 +46,5 @@ class QuizWithAnswer(QuizWithAnswerWithoutId):
 
 
 Quizes = list[QuizWithAnswer]
+
+QuizesWithoutAnswer = list[QuizWithAnswer]
