@@ -1,6 +1,12 @@
 from enum import Enum
-from typing import List
+from typing import NamedTuple, Tuple, List
 from pydantic import BaseModel
+
+
+class Position(NamedTuple):
+    lng: float
+    lat: float
+
 
 class MediaType(str, Enum):
     photo = "photo"
@@ -10,7 +16,7 @@ class MediaType(str, Enum):
 class MediaWithoutId(BaseModel):
     name: str
     type: MediaType
-    pos: tuple[float, float]
+    pos: Position
 
 class Media(MediaWithoutId):
     media_id: str

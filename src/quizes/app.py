@@ -105,11 +105,10 @@ def delete_quiz(quiz_id: str, settings: Settings = Depends(get_settings)):
             status_code=404, detail="Quiz with specified ID was not found"
         )
 
-@app.get("/quizzes/near/{lat}/{lng}", response_model=QuizesWithoutAnswer, tags=["resource:facts"])
-def get_nearest(lat: float, lng: float, max_dist: Optional[float] = 100, settings: Settings = Depends(get_settings)):
+@app.get("/quizzes/near/{lng}/{lat}", response_model=QuizesWithoutAnswer, tags=["resource:facts"])
+def get_nearest(lng: float, lat: float, max_dist: Optional[float] = 100, settings: Settings = Depends(get_settings)):
     quiz_collection = get_collection(settings.mongo_url, "quizzes")
-    quiz_collection.create_index([("pos", GEO2D)])
-    nearest = quiz_collection.find({"pos": SON([("$near", [lat, lng]), ("$maxDistance", max_dist)])}).limit(3)
+    nearest = quiz_collection.find({"pos": SON([("$near", [lng, lat]), ("$maxDistance", max_dist)])}).limit(3)
     res = []
     for quiz in nearest:
         try:

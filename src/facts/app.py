@@ -79,9 +79,9 @@ def patch_fact(
     if (lat is not None) or (lng is not None):
         new_pos = list(old_fact_pos)
         if lat is not None:
-            new_pos[0] = lat
+            new_pos[0] = lng
         if lng is not None:
-            new_pos[1] = lng
+            new_pos[1] = lat
         new_fact_dict["pos"] = tuple(new_pos)
 
     result = facts_collection.update_one({"fact_id": fact_id}, {"$set": new_fact_dict})
@@ -109,7 +109,7 @@ def put_fact(
             "fact_id": fact_id,
             "name": fact.name,
             "description": fact.description,
-            "pos": {"lan": fact.pos[0], "lng": fact.pos[1]},
+            "pos": {"lng": fact.pos[0], "lat": fact.pos[1]},
         },
     )
 
@@ -121,7 +121,7 @@ def put_fact(
         "fact_id": fact_id,
         "name": fact.name,
         "description": fact.description,
-        "pos": {"lan": fact.pos[0], "lng": fact.pos[1]},
+        "pos": {"lng": fact.pos[0], "lat": fact.pos[1]},
     }
 
 
@@ -136,11 +136,10 @@ def delete_fact(fact_id: str, settings: Settings = Depends(get_settings)):
             status_code=404, detail="Fact with specified id was not found"
         )
 
-@app.get("/facts/near/{lat}/{lng}", response_model=Facts, tags=["resource:facts"])
-def get_nearest(lat: float, lng: float, max_dist: Optional[float] = 100, settings: Settings = Depends(get_settings)):
+@app.get("/facts/near/{lng}/{lat}", response_model=Facts, tags=["resource:facts"])
+def get_nearest(lng: float, lat: float, max_dist: Optional[float] = 100, settings: Settings = Depends(get_settings)):
     facts_collection = get_collection(settings.mongo_url, "facts")
-    facts_collection.create_index([("pos", GEO2D)])
-    nearest = facts_collection.find({"pos": SON([("$near", [lat, lng]), ("$maxDistance", max_dist)])}).limit(3)
+    nearest = facts_collection.find({"pos": SON([("$near", [lng, lat]), ("$maxDistance", max_dist)])}).limit(3)
     res = []
     for fact in nearest:
         try:

@@ -16,11 +16,10 @@ app = FastAPI(
     ]
 )
 
-@app.get("/media/near/{lat}/{lng}", response_model=Medias, tags=["resource:facts"])
-def get_nearest(lat: float, lng: float, max_dist: Optional[float] = 100, settings: Settings = Depends(get_settings)):
+@app.get("/media/near/{lng}/{lat}", response_model=Medias, tags=["resource:facts"])
+def get_nearest(lng: float, lat: float, max_dist: Optional[float] = 100, settings: Settings = Depends(get_settings)):
     media_collection = get_collection(settings.mongo_url, "media")
-    media_collection.create_index([("pos", GEO2D)])
-    nearest = media_collection.find({"pos": SON([("$near", [lat, lng]), ("$maxDistance", max_dist)])}).limit(3)
+    nearest = media_collection.find({"pos": SON([("$near", [lng, lat]), ("$maxDistance", max_dist)])}).limit(3)
     res = []
     for media in nearest:
         try:

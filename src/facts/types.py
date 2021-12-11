@@ -3,8 +3,8 @@ from typing import NamedTuple, Tuple, List
 
 
 class Position(NamedTuple):
-    lat: float
     lng: float
+    lat: float
 
 
 class FactWithoutId(BaseModel):
@@ -16,7 +16,7 @@ class FactWithoutId(BaseModel):
         schema_extra = {
             "example": {
                 "name": "London",
-                "pos": (51.509865, -0.118092),
+                "pos": (-0.118092, 51.509865),
                 "description": "London is the capital of Great Britain",
             }
         }
@@ -29,7 +29,7 @@ class Fact(FactWithoutId):
         schema_extra = {
             "example": {
                 "name": "London",
-                "pos": (51.509865, -0.118092),
+                "pos": (-0.118092, 51.509865),
                 "description": "London is the capital of Great Britain",
                 "fact_id": "london_fact",
             }
