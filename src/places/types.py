@@ -15,9 +15,7 @@ class PlaceWithoutID(BaseModel):
         schema_extra = {
             "example": {
                 "name": "London",
-                "pos": (
-                    51.509865, -0.118092
-                ),
+                "pos": (51.509865, -0.118092),
             },
         }
 

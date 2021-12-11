@@ -77,7 +77,7 @@ def get_quiz(quiz_id: str, settings: Settings = Depends(get_settings)):
 def update_quiz(
     quiz_id: str,
     quiz: QuizWithAnswerWithoutId,
-    settings: Settings = Depends(get_settings)
+    settings: Settings = Depends(get_settings),
 ):
     quiz_collection = get_collection(settings.mongo_url, "quizzes")
 

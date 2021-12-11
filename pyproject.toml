@@ -14,6 +14,12 @@ pymongo = "^3.12.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
+requests = "^2.26.0"
+mongomock = "^3.23.0"
+
+[tool.pytest.ini_options]
+mongodb_fixture_dir = "tests/fixtures/mongodb"
+
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -13,9 +13,12 @@ logger = getLogger("facts")
 logger.setLevel(get_settings().log_level)
 
 
+def get_mongodb(settings: Settings = Depends(get_settings)):
+    return get_collection(settings.mongo_url, "facts")
+
+
 @app.get("/facts", response_model=Facts, tags=["resource:facts"])
-def get_facts(settings: Settings = Depends(get_settings)):
-    facts_collection = get_collection(settings.mongo_url, "facts")
+def get_facts(facts_collection=Depends(get_mongodb)):
     facts = facts_collection.find({})
 
     logger.debug("getting facts: %s", facts)
@@ -63,7 +66,12 @@ def patch_fact(
     lng: Optional[float] = None,
     settings: Settings = Depends(get_settings),
 ):
-    if (name is not None) or (description is not None) or (lat is not None) or (lng is not None):
+    if (
+        (name is not None)
+        or (description is not None)
+        or (lat is not None)
+        or (lng is not None)
+    ):
         raise HTTPException(status_code=409, detail="No new parameters were supplied")
 
     facts_collection = get_collection(settings.mongo_url, "facts")
