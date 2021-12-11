@@ -3,7 +3,6 @@ from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Depends, Query
 from reusable_mongodb_connection.fastapi import get_collection
-from pymongo import  GEO2D
 from bson.son import SON
 
 from .types import Fact, FactWithoutId, Facts, Position
@@ -61,11 +60,16 @@ def patch_fact(
     fact_id: str,
     name: Optional[str] = None,
     description: Optional[str] = None,
-    lat: Optional[float] = None,
     lng: Optional[float] = None,
+    lat: Optional[float] = None,
     settings: Settings = Depends(get_settings),
 ):
-    if (name is not None) or (description is not None) or (lat is not None) or (lng is not None):
+    if (
+        (name is not None)
+        or (description is not None)
+        or (lat is not None)
+        or (lng is not None)
+    ):
         raise HTTPException(status_code=409, detail="No new parameters were supplied")
 
     facts_collection = get_collection(settings.mongo_url, "facts")
@@ -76,11 +80,11 @@ def patch_fact(
         new_fact_dict["name"] = name
     if description is not None:
         new_fact_dict["description"] = description
-    if (lat is not None) or (lng is not None):
+    if (lng is not None) or (lat is not None):
         new_pos = list(old_fact_pos)
-        if lat is not None:
-            new_pos[0] = lng
         if lng is not None:
+            new_pos[0] = lng
+        if lat is not None:
             new_pos[1] = lat
         new_fact_dict["pos"] = tuple(new_pos)
 
@@ -136,10 +140,18 @@ def delete_fact(fact_id: str, settings: Settings = Depends(get_settings)):
             status_code=404, detail="Fact with specified id was not found"
         )
 
+
 @app.get("/facts/near/{lng}/{lat}", response_model=Facts, tags=["resource:facts"])
-def get_nearest(lng: float, lat: float, max_dist: Optional[float] = 100, settings: Settings = Depends(get_settings)):
+def get_nearest(
+    lng: float,
+    lat: float,
+    max_dist: Optional[float] = 100,
+    settings: Settings = Depends(get_settings),
+):
     facts_collection = get_collection(settings.mongo_url, "facts")
-    nearest = facts_collection.find({"pos": SON([("$near", [lng, lat]), ("$maxDistance", max_dist)])}).limit(3)
+    nearest = facts_collection.find(
+        {"pos": SON([("$near", [lng, lat]), ("$maxDistance", max_dist)])}
+    ).limit(3)
     res = []
     for fact in nearest:
         try:

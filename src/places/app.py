@@ -1,7 +1,7 @@
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Depends
-from pymongo import  GEO2D
+from pymongo import GEO2D
 from bson.son import SON
 from reusable_mongodb_connection.fastapi import get_collection
 
@@ -122,11 +122,19 @@ def delete_place(place_id: str, settings: Settings = Depends(get_settings)):
             status_code=404, detail="Place with specified ID was not found"
         )
 
+
 @app.get("/places/near/{lat}/{lng}", response_model=Places, tags=["resource:places"])
-def get_nearest(lat: float, lng: float, max_dist: Optional[float] = 100, settings: Settings = Depends(get_settings)):
+def get_nearest(
+    lat: float,
+    lng: float,
+    max_dist: Optional[float] = 100,
+    settings: Settings = Depends(get_settings),
+):
     places_collection = get_collection(settings.mongo_url)
     places_collection.create_index([("pos", GEO2D)])
-    nearest = places_collection.find({"pos": SON([("$near", [lat, lng]), ("$maxDistance", max_dist)])}).limit(3)
+    nearest = places_collection.find(
+        {"pos": SON([("$near", [lat, lng]), ("$maxDistance", max_dist)])}
+    ).limit(3)
     res = []
     for place in nearest:
         try:

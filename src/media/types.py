@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import NamedTuple, Tuple, List
+from typing import NamedTuple
 from pydantic import BaseModel
 
 
@@ -13,12 +13,15 @@ class MediaType(str, Enum):
     audio = "audio"
     video = "video"
 
+
 class MediaWithoutId(BaseModel):
     name: str
     type: MediaType
     pos: Position
 
+
 class Media(MediaWithoutId):
     media_id: str
+
 
 Medias = list[Media]

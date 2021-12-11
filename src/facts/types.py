@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import NamedTuple, Tuple, List
+from typing import NamedTuple
 
 
 class Position(NamedTuple):

@@ -3,10 +3,15 @@ from typing import Any, Optional
 from fastapi import FastAPI, HTTPException, Depends
 from reusable_mongodb_connection import get_db
 from reusable_mongodb_connection.fastapi import get_collection
-from pymongo import  GEO2D
 from bson.son import SON
 
-from .types import Quizes, QuizWithoutAnswer, QuizWithAnswer, QuizWithAnswerWithoutId, QuizesWithoutAnswer
+from .types import (
+    Quizes,
+    QuizWithoutAnswer,
+    QuizWithAnswer,
+    QuizWithAnswerWithoutId,
+    QuizesWithoutAnswer,
+)
 from .settings import Settings, get_settings
 
 app = FastAPI(
@@ -79,7 +84,7 @@ def get_quiz(quiz_id: str, settings: Settings = Depends(get_settings)):
 def update_quiz(
     quiz_id: str,
     quiz: QuizWithAnswerWithoutId,
-    settings: Settings = Depends(get_settings)
+    settings: Settings = Depends(get_settings),
 ):
     quiz_collection = get_collection(settings.mongo_url, "quizzes")
 
@@ -105,10 +110,22 @@ def delete_quiz(quiz_id: str, settings: Settings = Depends(get_settings)):
             status_code=404, detail="Quiz with specified ID was not found"
         )
 
-@app.get("/quizzes/near/{lng}/{lat}", response_model=QuizesWithoutAnswer, tags=["resource:facts"])
-def get_nearest(lng: float, lat: float, max_dist: Optional[float] = 100, settings: Settings = Depends(get_settings)):
+
+@app.get(
+    "/quizzes/near/{lng}/{lat}",
+    response_model=QuizesWithoutAnswer,
+    tags=["resource:facts"],
+)
+def get_nearest(
+    lng: float,
+    lat: float,
+    max_dist: Optional[float] = 100,
+    settings: Settings = Depends(get_settings),
+):
     quiz_collection = get_collection(settings.mongo_url, "quizzes")
-    nearest = quiz_collection.find({"pos": SON([("$near", [lng, lat]), ("$maxDistance", max_dist)])}).limit(3)
+    nearest = quiz_collection.find(
+        {"pos": SON([("$near", [lng, lat]), ("$maxDistance", max_dist)])}
+    ).limit(3)
     res = []
     for quiz in nearest:
         try:
