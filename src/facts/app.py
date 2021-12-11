@@ -65,10 +65,10 @@ def patch_fact(
     settings: Settings = Depends(get_settings),
 ):
     if (
-        (name is not None)
-        or (description is not None)
-        or (lat is not None)
-        or (lng is not None)
+        (name is None)
+        and (description is None)
+        and (lat is None)
+        and (lng is None)
     ):
         raise HTTPException(status_code=409, detail="No new parameters were supplied")
 
@@ -105,6 +105,8 @@ def patch_fact(
 def put_fact(
     fact_id: str, fact: FactWithoutId, settings: Settings = Depends(get_settings)
 ):
+    logger.debug(f"updating fact with id {fact_id} with {fact.dict()}")
+    # print(fact.pos, tuple(fact.pos))
     facts_collection = get_collection(settings.mongo_url, "facts")
 
     result = facts_collection.replace_one(
@@ -113,7 +115,7 @@ def put_fact(
             "fact_id": fact_id,
             "name": fact.name,
             "description": fact.description,
-            "pos": {"lng": fact.pos[0], "lat": fact.pos[1]},
+            "pos": fact.pos,
         },
     )
 
@@ -121,12 +123,7 @@ def put_fact(
         raise HTTPException(
             status_code=404, detail="Fact with specified ID was not found"
         )
-    return {
-        "fact_id": fact_id,
-        "name": fact.name,
-        "description": fact.description,
-        "pos": {"lng": fact.pos[0], "lat": fact.pos[1]},
-    }
+    return Fact(fact_id=fact_id, **fact.dict())
 
 
 @app.delete("/facts/{fact_id}", tags=["resource:facts"])
@@ -149,11 +146,12 @@ def get_nearest(
     settings: Settings = Depends(get_settings),
 ):
     facts_collection = get_collection(settings.mongo_url, "facts")
-    nearest = facts_collection.find(
+    facts = facts_collection.find(
         {"pos": SON([("$near", [lng, lat]), ("$maxDistance", max_dist)])}
-    ).limit(3)
+    )
+
     res = []
-    for fact in nearest:
+    for fact in facts:
         try:
             res.append(Fact(**fact))
         except Exception as e:
