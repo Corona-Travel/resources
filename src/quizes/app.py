@@ -66,18 +66,18 @@ def add_quiz(quiz: QuizWithAnswer, settings: Settings = Depends(get_settings)):
     quiz_collection.insert_one(quiz.dict())
 
 
-@app.get("/quizzes/{quiz_id}", response_model=QuizWithoutAnswer, tags=["resource:quiz"])
+@app.get("/quizzes/{quiz_id}", response_model=QuizWithAnswer, tags=["resource:quiz"])
 def get_quiz(quiz_id: str, settings: Settings = Depends(get_settings)):
     quiz_collection = get_collection(settings.mongo_url, "quizzes")
 
-    quiz = quiz_collection.find_one({"id": quiz_id})
+    quiz = quiz_collection.find_one({"quiz_id": quiz_id})
 
     if quiz is None:
         raise HTTPException(
             status_code=404, detail="Quiz with specified id was not found"
         )
 
-    return QuizWithoutAnswer(**quiz)
+    return QuizWithAnswer(**quiz)
 
 
 @app.put("/quizzes/{quiz_id}", response_model=QuizWithAnswer, tags=["resource:quiz"])
