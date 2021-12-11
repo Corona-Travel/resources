@@ -72,8 +72,6 @@ def get_quiz(quiz_id: str, settings: Settings = Depends(get_settings)):
 
     quiz = quiz_collection.find_one({"quiz_id": quiz_id})
 
-    print(quiz)
-
     if quiz is None:
         raise HTTPException(
             status_code=404, detail="Quiz with specified id was not found"
