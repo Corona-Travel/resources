@@ -6,11 +6,9 @@ from reusable_mongodb_connection.fastapi import get_collection
 from bson.son import SON
 
 from .types import (
-    Quizes,
-    QuizWithoutAnswer,
-    QuizWithAnswer,
-    QuizWithAnswerWithoutId,
-    QuizesWithoutAnswer,
+    Quiz,
+    Quizzes,
+    QuizWithoutId,
 )
 from .settings import Settings, get_settings
 
@@ -23,24 +21,7 @@ app = FastAPI(
 )
 
 
-def get_quizzes_collection(mongo_url: Any):
-    try:
-        db = get_db(mongo_url)
-    except Exception as e:
-        print("Connection to DB was unsuccessful")
-        print(f"Exception: {e}")
-        raise HTTPException(status_code=500, detail="Connection to DB was unsuccessful")
-
-    if "quizzes" not in db.list_collection_names():
-        print("Collection not found")
-        raise HTTPException(
-            status_code=500,
-            detail="Collection not found",
-        )
-    return db.quizes
-
-
-@app.get("/quizzes", response_model=Quizes, tags=["resource:quiz"])
+@app.get("/quizzes", response_model=Quizzes, tags=["resource:quiz"])
 def get_quizzes(settings: Settings = Depends(get_settings)):
     quiz_collection = get_collection(settings.mongo_url, "quizzes")
 
@@ -49,14 +30,14 @@ def get_quizzes(settings: Settings = Depends(get_settings)):
     result = []
     for q in quizzes:
         try:
-            result.append(QuizWithAnswer(**q))
+            result.append(Quiz(**q))
         except Exception as e:
             print(str(e))
     return result
 
 
 @app.post("/quizzes", tags=["resource:quiz"])
-def add_quiz(quiz: QuizWithAnswer, settings: Settings = Depends(get_settings)):
+def add_quiz(quiz: Quiz, settings: Settings = Depends(get_settings)):
     quiz_collection = get_collection(settings.mongo_url, "quizzes")
     check_quiz_id = quiz_collection.find_one({})
 
@@ -66,7 +47,7 @@ def add_quiz(quiz: QuizWithAnswer, settings: Settings = Depends(get_settings)):
     quiz_collection.insert_one(quiz.dict())
 
 
-@app.get("/quizzes/{quiz_id}", response_model=QuizWithAnswer, tags=["resource:quiz"])
+@app.get("/quizzes/{quiz_id}", response_model=Quiz, tags=["resource:quiz"])
 def get_quiz(quiz_id: str, settings: Settings = Depends(get_settings)):
     quiz_collection = get_collection(settings.mongo_url, "quizzes")
 
@@ -77,13 +58,13 @@ def get_quiz(quiz_id: str, settings: Settings = Depends(get_settings)):
             status_code=404, detail="Quiz with specified id was not found"
         )
 
-    return QuizWithAnswer(**quiz)
+    return Quiz(**quiz)
 
 
-@app.put("/quizzes/{quiz_id}", response_model=QuizWithAnswer, tags=["resource:quiz"])
+@app.put("/quizzes/{quiz_id}", response_model=Quiz, tags=["resource:quiz"])
 def update_quiz(
     quiz_id: str,
-    quiz: QuizWithAnswerWithoutId,
+    quiz: QuizWithoutId,
     settings: Settings = Depends(get_settings),
 ):
     quiz_collection = get_collection(settings.mongo_url, "quizzes")
@@ -96,7 +77,7 @@ def update_quiz(
         )
 
     new_quiz = quiz_collection.find_one({"quiz_id": quiz_id})
-    return QuizWithoutAnswer(**new_quiz)
+    return Quiz(**new_quiz)
 
 
 @app.delete("/quizzes/{quiz_id}", tags=["resource:quiz"])
@@ -113,7 +94,7 @@ def delete_quiz(quiz_id: str, settings: Settings = Depends(get_settings)):
 
 @app.get(
     "/quizzes/near/{lng}/{lat}",
-    response_model=QuizesWithoutAnswer,
+    response_model=Quizzes,
     tags=["resource:quiz"],
 )
 def get_nearest(
@@ -129,7 +110,7 @@ def get_nearest(
     res = []
     for quiz in nearest:
         try:
-            res.append(QuizWithoutAnswer(**quiz))
+            res.append(Quiz(**quiz))
         except Exception as e:
             print(str(e))
     return res

@@ -63,13 +63,13 @@ services:
     ports:
       - 12343:1234
 
-  quizes:
+  quizzes:
     build:
       dockerfile: ./Dockerfile
       args:
-        SRC_PATH: "./src/quizes"
-        APP_PATH: "./quizes"
-        ASGI_APP: "quizes.app:app"
+        SRC_PATH: "./src/quizzes"
+        APP_PATH: "./quizzes"
+        ASGI_APP: "quizzes.app:app"
     environment:
       MONGO_URL: mongodb://mongo/corona_travel
       LOG_LEVEL: DEBUG

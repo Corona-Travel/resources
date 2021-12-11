@@ -15,7 +15,7 @@ to restart a resource-service, you can run one of the following:
 docker compose up -d --no-deps --build facts && docker compose logs -f
 docker compose up -d --no-deps --build media && docker compose logs -f
 docker compose up -d --no-deps --build places && docker compose logs -f
-docker compose up -d --no-deps --build quizes && docker compose logs -f
+docker compose up -d --no-deps --build quizzes && docker compose logs -f
 ```
 
 or, for older docker-compose versions, run the following
@@ -28,5 +28,5 @@ to restart a resource-service, you can run one of the following in old style:
 docker-compose up -d --no-deps --build facts && docker-compose logs -f
 docker-compose up -d --no-deps --build media && docker-compose logs -f
 docker-compose up -d --no-deps --build places && docker-compose logs -f
-docker-compose up -d --no-deps --build quizes && docker-compose logs -f
+docker-compose up -d --no-deps --build quizzes && docker-compose logs -f
 ```
