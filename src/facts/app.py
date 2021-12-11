@@ -33,8 +33,12 @@ def get_facts(facts_collection=Depends(get_mongodb)):
 
 
 @app.post("/facts", tags=["resource:facts"])
-def post_fact(fact: Fact, settings: Settings = Depends(get_settings)):
-    facts_collection = get_collection(settings.mongo_url, "facts")
+def post_fact(
+    fact: Fact,
+    settings: Settings = Depends(get_settings),
+    facts_collection = Depends(get_mongodb),
+):
+    # facts_collection = get_collection(settings.mongo_url, "facts")
 
     fact_with_same_id = facts_collection.find_one({"fact_id": fact.fact_id})
 
@@ -45,9 +49,7 @@ def post_fact(fact: Fact, settings: Settings = Depends(get_settings)):
 
 
 @app.get("/facts/{fact_id}", response_model=Fact, tags=["resource:facts"])
-def get_fact_by_id(fact_id: str, settings: Settings = Depends(get_settings)):
-    facts_collection = get_collection(settings.mongo_url, "facts")
-
+def get_fact_by_id(fact_id: str, facts_collection=Depends(get_mongodb)):
     fact = facts_collection.find_one({"fact_id": fact_id})
 
     if fact is None:
