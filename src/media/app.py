@@ -16,7 +16,7 @@ app = FastAPI(
 )
 
 
-@app.get("/media/near/{lng}/{lat}", response_model=Medias, tags=["resource:facts"])
+@app.get("/media/near/{lng}/{lat}", response_model=Medias, tags=["resource:media"])
 def get_nearest(
     lng: float,
     lat: float,

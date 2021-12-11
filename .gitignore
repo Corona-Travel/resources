@@ -9,3 +9,6 @@
 
 # temporary files
 /requirements.txt
+
+# for local testing only
+/mongo-init.js

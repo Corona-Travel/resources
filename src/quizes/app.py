@@ -114,7 +114,7 @@ def delete_quiz(quiz_id: str, settings: Settings = Depends(get_settings)):
 @app.get(
     "/quizzes/near/{lng}/{lat}",
     response_model=QuizesWithoutAnswer,
-    tags=["resource:facts"],
+    tags=["resource:quiz"],
 )
 def get_nearest(
     lng: float,
