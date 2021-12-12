@@ -1,6 +1,6 @@
 from enum import Enum
 from typing import NamedTuple
-from pydantic import BaseModel
+from pydantic import BaseModel, AnyUrl
 
 
 class Coordinates(NamedTuple):
@@ -22,6 +22,7 @@ class MediaWithoutId(BaseModel):
     name: str
     type: MediaType
     pos: Position
+    url: str
 
 
 class Media(MediaWithoutId):

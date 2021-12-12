@@ -14,6 +14,19 @@ app = FastAPI(
     ]
 )
 
+@app.get("/media", response_model=Medias, tags=["resource:media"])
+def get_medias(settings: Settings = Depends(get_settings)):
+    media_collection = get_collection(settings.mongo_url, "media")
+    medias = media_collection.find({})
+
+    res = []
+    for m in medias:
+        try:
+            res.append(Media(**m))
+        except Exception as e:
+            print(str(e))
+    return res
+
 
 @app.get("/media/near/{lng}/{lat}", response_model=Medias, tags=["resource:media"])
 def get_nearest(
