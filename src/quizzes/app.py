@@ -30,7 +30,14 @@ def get_quizzes(settings: Settings = Depends(get_settings)):
     result = []
     for q in quizzes:
         try:
-            result.append(Quiz(**q))
+            result.append(
+                Quiz(
+                    quiz_id=q["quiz_id"],
+                    name=q["name"],
+                    pos=q["pos"]["coordinates"],
+                    questions=q["questions"]
+                )
+            )
         except Exception as e:
             print(str(e))
     return result
@@ -39,10 +46,13 @@ def get_quizzes(settings: Settings = Depends(get_settings)):
 @app.post("/quizzes", tags=["resource:quiz"])
 def add_quiz(quiz: Quiz, settings: Settings = Depends(get_settings)):
     quiz_collection = get_collection(settings.mongo_url, "quizzes")
-    check_quiz_id = quiz_collection.find_one({})
+    check_quiz_id = quiz_collection.find_one({"quiz_id": quiz.quiz_id})
 
     if check_quiz_id is not None:
         raise HTTPException(status_code=400, detail="quiz ID occupied")
+
+    coordinates = quiz.pos
+    quiz.pos = {"type": "Point", "coordinates": coordinates}
 
     quiz_collection.insert_one(quiz.dict())
 
@@ -58,7 +68,12 @@ def get_quiz(quiz_id: str, settings: Settings = Depends(get_settings)):
             status_code=404, detail="Quiz with specified id was not found"
         )
 
-    return Quiz(**quiz)
+    return Quiz(
+                quiz_id=quiz["quiz_id"],
+                name=quiz["name"],
+                pos=quiz["pos"]["coordinates"],
+                questions=quiz["questions"]
+            )
 
 
 @app.put("/quizzes/{quiz_id}", response_model=Quiz, tags=["resource:quiz"])
@@ -77,7 +92,12 @@ def update_quiz(
         )
 
     new_quiz = quiz_collection.find_one({"quiz_id": quiz_id})
-    return Quiz(**new_quiz)
+    return Quiz(
+                quiz_id=new_quiz["quiz_id"],
+                name=new_quiz["name"],
+                pos=new_quiz["pos"],
+                questions=new_quiz["questions"]
+            )
 
 
 @app.delete("/quizzes/{quiz_id}", tags=["resource:quiz"])
@@ -117,7 +137,13 @@ def get_nearest(
     res = []
     for quiz in nearest:
         try:
-            res.append(Quiz(**quiz))
+            res.append(Quiz(
+                        quiz_id=quiz["quiz_id"],
+                        name=quiz["name"],
+                        pos=quiz["pos"]["coordinates"],
+                        questions=quiz["questions"]
+                        )
+                    )
         except Exception as e:
             print(str(e))
     return res
