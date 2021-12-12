@@ -7,6 +7,9 @@
 # cache
 /**/__pycache__/
 
+# build
+/dist
+
 # temporary files
 /requirements.txt
 
