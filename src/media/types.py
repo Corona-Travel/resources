@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import NamedTuple
-from pydantic import BaseModel, AnyUrl
+
+from pydantic import AnyUrl, BaseModel
 
 
 class Position(NamedTuple):

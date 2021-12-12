@@ -1,9 +1,7 @@
 from typing import Any, Optional
 
-from bson.son import SON
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from reusable_mongodb_connection import get_db
 from reusable_mongodb_connection.fastapi import get_collection
 
 from .settings import Settings, get_settings
@@ -39,7 +37,7 @@ def get_quizzes(settings: Settings = Depends(get_settings)):
                     quiz_id=q["quiz_id"],
                     name=q["name"],
                     pos=q["pos"]["coordinates"],
-                    questions=q["questions"]
+                    questions=q["questions"],
                 )
             )
         except Exception as e:
@@ -73,11 +71,11 @@ def get_quiz(quiz_id: str, settings: Settings = Depends(get_settings)):
         )
 
     return Quiz(
-                quiz_id=quiz["quiz_id"],
-                name=quiz["name"],
-                pos=quiz["pos"]["coordinates"],
-                questions=quiz["questions"]
-            )
+        quiz_id=quiz["quiz_id"],
+        name=quiz["name"],
+        pos=quiz["pos"]["coordinates"],
+        questions=quiz["questions"],
+    )
 
 
 @app.put("/quizzes/{quiz_id}", response_model=Quiz, tags=["resource:quiz"])
@@ -97,11 +95,11 @@ def update_quiz(
 
     new_quiz = quiz_collection.find_one({"quiz_id": quiz_id})
     return Quiz(
-                quiz_id=new_quiz["quiz_id"],
-                name=new_quiz["name"],
-                pos=new_quiz["pos"],
-                questions=new_quiz["questions"]
-            )
+        quiz_id=new_quiz["quiz_id"],
+        name=new_quiz["name"],
+        pos=new_quiz["pos"],
+        questions=new_quiz["questions"],
+    )
 
 
 @app.delete("/quizzes/{quiz_id}", tags=["resource:quiz"])
@@ -141,13 +139,14 @@ def get_nearest(
     res = []
     for quiz in nearest:
         try:
-            res.append(Quiz(
-                        quiz_id=quiz["quiz_id"],
-                        name=quiz["name"],
-                        pos=quiz["pos"]["coordinates"],
-                        questions=quiz["questions"]
-                        )
-                    )
+            res.append(
+                Quiz(
+                    quiz_id=quiz["quiz_id"],
+                    name=quiz["name"],
+                    pos=quiz["pos"]["coordinates"],
+                    questions=quiz["questions"],
+                )
+            )
         except Exception as e:
             print(str(e))
     return res

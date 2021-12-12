@@ -1,9 +1,8 @@
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import Depends, FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from reusable_mongodb_connection.fastapi import get_collection
-
-from .types import Media, Medias, MediaWithoutId
 
 from .settings import Settings, get_settings
 from .types import Media, Medias, MediaWithoutId
@@ -32,17 +31,19 @@ def get_medias(settings: Settings = Depends(get_settings)):
     res = []
     for m in medias:
         try:
-            res.append(Media(
-                            media_id=m["media_id"],
-                            name=m["name"],
-                            type=m["type"],
-                            pos=m["pos"]["coordinates"],
-                            url=m["url"]
-                        )
-                    )
+            res.append(
+                Media(
+                    media_id=m["media_id"],
+                    name=m["name"],
+                    type=m["type"],
+                    pos=m["pos"]["coordinates"],
+                    url=m["url"],
+                )
+            )
         except Exception as e:
             print(str(e))
     return res
+
 
 @app.post("/media", tags=["resource:media"])
 def post_media(media: Media, settings: Settings = Depends(get_settings)):
@@ -52,11 +53,12 @@ def post_media(media: Media, settings: Settings = Depends(get_settings)):
 
     if media_with_same_id is not None:
         raise HTTPException(status_code=400, detail="place ID occupied")
-    
+
     coordinates = media.pos
     media.pos = {"type": "Point", "coordinates": coordinates}
 
     media_collection.insert_one(media.dict())
+
 
 @app.get("/media/{media_id}", response_model=Media, tags=["resource:media"])
 def get_media_by_id(media_id: str, settings: Settings = Depends(get_settings)):
@@ -69,12 +71,13 @@ def get_media_by_id(media_id: str, settings: Settings = Depends(get_settings)):
             status_code=404, detail="Place with specified id was not found"
         )
     return Media(
-                    media_id=media["media_id"],
-                    name=media["name"],
-                    url=media["url"],
-                    type=media["type"],
-                    pos=media["pos"]["coordinates"],
-                )
+        media_id=media["media_id"],
+        name=media["name"],
+        url=media["url"],
+        type=media["type"],
+        pos=media["pos"]["coordinates"],
+    )
+
 
 @app.patch("/media/{media_id}", response_model=Media, tags=["resource:media"])
 def patch_place(
@@ -115,12 +118,13 @@ def patch_place(
         )
     new_media = media_collection.find_one({"media_id": media_id})
     return Media(
-                    media_id=new_media["media_id"],
-                    name=new_media["name"],
-                    url=new_media["url"],
-                    type=new_media["type"],
-                    pos=new_media["pos"]["coordinates"],
+        media_id=new_media["media_id"],
+        name=new_media["name"],
+        url=new_media["url"],
+        type=new_media["type"],
+        pos=new_media["pos"]["coordinates"],
     )
+
 
 @app.put("/media/{media_id}", response_model=Media, tags=["resource:media"])
 def put_place(
@@ -139,12 +143,13 @@ def put_place(
         )
     new_media = media_collection.find_one({"media_id": media_id})
     return Media(
-                    media_id=new_media["media_id"],
-                    name=new_media["name"],
-                    url=new_media["url"],
-                    type=new_media["type"],
-                    pos=new_media["pos"]["coordinates"],
+        media_id=new_media["media_id"],
+        name=new_media["name"],
+        url=new_media["url"],
+        type=new_media["type"],
+        pos=new_media["pos"]["coordinates"],
     )
+
 
 @app.delete("/media/{media_id}", tags=["resource:media"])
 def delete_place(media_id: str, settings: Settings = Depends(get_settings)):
@@ -181,13 +186,15 @@ def get_nearest(
     res = []
     for m in nearest:
         try:
-            res.append(Media(
-                            media_id=m["media_id"],
-                            name=m["name"],
-                            type=m["type"],
-                            pos=m["pos"]["coordinates"],
-                            url=m["url"]
-            ))
+            res.append(
+                Media(
+                    media_id=m["media_id"],
+                    name=m["name"],
+                    type=m["type"],
+                    pos=m["pos"]["coordinates"],
+                    url=m["url"],
+                )
+            )
         except Exception as e:
             print(str(e))
     return res

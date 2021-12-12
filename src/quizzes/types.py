@@ -1,10 +1,12 @@
 from typing import NamedTuple
+
 from pydantic import BaseModel
 
 
 class Position(NamedTuple):
     lng: float
     lat: float
+
 
 class Answer(BaseModel):
     option: str
