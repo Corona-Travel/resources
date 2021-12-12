@@ -19,12 +19,18 @@ app = FastAPI(
 def get_places(settings: Settings = Depends(get_settings)):
     place_collection = get_collection(settings.mongo_url, "places")
 
-    markers = place_collection.find({})
+    places = place_collection.find({})
 
     res = []
-    for m in markers:
+    for place in places:
         try:
-            res.append(Place(**m))
+            res.append(
+                Place(
+                    place_id=place["place_id"],
+                    name=place["name"],
+                    pos=place["pos"]["coordinates"],
+                )
+            )
         except Exception as e:
             print(str(e))
     return res
