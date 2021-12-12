@@ -4,7 +4,9 @@ from fastapi import FastAPI, HTTPException, Depends
 from reusable_mongodb_connection.fastapi import get_collection
 
 from .types import Media, Medias, MediaWithoutId
+
 from .settings import Settings, get_settings
+from .types import Media, Medias, MediaWithoutId
 
 app = FastAPI(
     openapi_tags=[
@@ -13,6 +15,14 @@ app = FastAPI(
         }
     ]
 )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.get("/media", response_model=Medias, tags=["resource:media"])
 def get_medias(settings: Settings = Depends(get_settings)):
@@ -157,15 +167,16 @@ def get_nearest(
 ):
     media_collection = get_collection(settings.mongo_url, "media")
 
-    nearest = media_collection.find({"pos": { "$near" :
-          {
-            "$geometry" : {
-               "type" : "Point" ,
-               "coordinates" : [lng, lat] },
-            "$maxDistance" : max_dist
-          }
-    }
-       })
+    nearest = media_collection.find(
+        {
+            "pos": {
+                "$near": {
+                    "$geometry": {"type": "Point", "coordinates": [lng, lat]},
+                    "$maxDistance": max_dist,
+                }
+            }
+        }
+    )
 
     res = []
     for m in nearest:

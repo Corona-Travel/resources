@@ -1,16 +1,13 @@
 from typing import Any, Optional
 
-from fastapi import FastAPI, HTTPException, Depends
+from bson.son import SON
+from fastapi import Depends, FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from reusable_mongodb_connection import get_db
 from reusable_mongodb_connection.fastapi import get_collection
-from bson.son import SON
 
-from .types import (
-    Quiz,
-    Quizzes,
-    QuizWithoutId,
-)
 from .settings import Settings, get_settings
+from .types import Quiz, QuizWithoutId, Quizzes
 
 app = FastAPI(
     openapi_tags=[
@@ -18,6 +15,13 @@ app = FastAPI(
             "name": "resource:quiz",
         }
     ]
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -125,15 +129,15 @@ def get_nearest(
 ):
     quiz_collection = get_collection(settings.mongo_url, "quizzes")
     nearest = quiz_collection.find(
-        {"pos": { "$near" :
-          {
-            "$geometry" : {
-               "type" : "Point" ,
-               "coordinates" : [lng, lat] },
-            "$maxDistance" : max_dist
-          }
-    }
-       })
+        {
+            "pos": {
+                "$near": {
+                    "$geometry": {"type": "Point", "coordinates": [lng, lat]},
+                    "$maxDistance": max_dist,
+                }
+            }
+        }
+    )
     res = []
     for quiz in nearest:
         try:
