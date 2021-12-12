@@ -142,13 +142,10 @@ def delete_fact(fact_id: str, settings: Settings = Depends(get_settings)):
 def get_nearest(
     lng: float,
     lat: float,
-    max_dist: Optional[float] = 100,
+    max_dist: Optional[float] = 10000,
     settings: Settings = Depends(get_settings),
 ):
     facts_collection = get_collection(settings.mongo_url, "facts")
-    """facts = facts_collection.find(
-        {"pos": SON([("$near", [lng, lat]), ("$maxDistance", max_dist)])}
-    )"""
     facts = facts_collection.find({"pos": { "$near" :
           {
             "$geometry" : {

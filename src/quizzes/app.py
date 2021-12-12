@@ -100,13 +100,20 @@ def delete_quiz(quiz_id: str, settings: Settings = Depends(get_settings)):
 def get_nearest(
     lng: float,
     lat: float,
-    max_dist: Optional[float] = 100,
+    max_dist: Optional[float] = 10000,
     settings: Settings = Depends(get_settings),
 ):
     quiz_collection = get_collection(settings.mongo_url, "quizzes")
     nearest = quiz_collection.find(
-        {"pos": SON([("$near", [lng, lat]), ("$maxDistance", max_dist)])}
-    ).limit(3)
+        {"pos": { "$near" :
+          {
+            "$geometry" : {
+               "type" : "Point" ,
+               "coordinates" : [lng, lat] },
+            "$maxDistance" : max_dist
+          }
+    }
+       })
     res = []
     for quiz in nearest:
         try:
