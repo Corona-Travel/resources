@@ -146,9 +146,19 @@ def get_nearest(
     settings: Settings = Depends(get_settings),
 ):
     facts_collection = get_collection(settings.mongo_url, "facts")
-    facts = facts_collection.find(
+    """facts = facts_collection.find(
         {"pos": SON([("$near", [lng, lat]), ("$maxDistance", max_dist)])}
-    )
+    )"""
+    facts = facts_collection.find({"pos": { "$near" :
+          {
+            "$geometry" : {
+               "type" : "Point" ,
+               "coordinates" : [lng, lat] },
+            "$maxDistance" : max_dist
+          }
+    }
+       })
+    print(facts)
 
     res = []
     for fact in facts:
