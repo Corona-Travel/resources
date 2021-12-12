@@ -2,13 +2,9 @@ from typing import NamedTuple
 from pydantic import BaseModel
 
 
-class Coordinates(NamedTuple):
+class Position(NamedTuple):
     lng: float
     lat: float
-
-class Position(BaseModel):
-    type: str
-    coordinates: Coordinates
 
 
 class PlaceWithoutID(BaseModel):

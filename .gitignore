@@ -7,8 +7,8 @@
 # cache
 /**/__pycache__/
 
-# temporary files
-/requirements.txt
+# build
+/dist
 
 # for local testing only
 /mongo-init.js
