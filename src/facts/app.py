@@ -23,7 +23,14 @@ def get_facts(settings: Settings = Depends(get_settings)):
     res = []
     for f in facts:
         try:
-            res.append(Fact(**f))
+            res.append(
+                Fact(
+                    fact_id=f["fact_id"],
+                    name=f["name"],
+                    description=f["description"],
+                    pos=f["pos"]["coordinates"],
+                )
+            )
         except Exception as e:
             print(str(e))
     return res
@@ -33,10 +40,15 @@ def get_facts(settings: Settings = Depends(get_settings)):
 def post_fact(fact: Fact, settings: Settings = Depends(get_settings)):
     facts_collection = get_collection(settings.mongo_url, "facts")
 
+    print(fact.dict())
+
     fact_with_same_id = facts_collection.find_one({"fact_id": fact.fact_id})
 
     if fact_with_same_id is not None:
         raise HTTPException(status_code=400, detail="fact ID occupied")
+
+    coordinates = fact.pos
+    fact.pos = {"type": "Point", "coordinates": coordinates}
 
     facts_collection.insert_one(fact.dict())
 
@@ -51,7 +63,12 @@ def get_fact_by_id(fact_id: str, settings: Settings = Depends(get_settings)):
         raise HTTPException(
             status_code=404, detail="Fact with specified id was not found"
         )
-    return Fact(**fact)
+    return Fact(
+                fact_id=fact["fact_id"],
+                name=fact["name"],
+                description=fact["description"],
+                pos=fact["pos"]["coordinates"],
+            )
 
 
 @app.patch("/facts/{fact_id}", response_model=Fact, tags=["resource:facts"])
@@ -85,7 +102,7 @@ def patch_fact(
             new_pos[0] = lng
         if lat is not None:
             new_pos[1] = lat
-        new_fact_dict["pos"] = tuple(new_pos)
+        new_fact_dict["pos"] = {"type": "Point", "coordinates": tuple(new_pos)}
 
     result = facts_collection.update_one({"fact_id": fact_id}, {"$set": new_fact_dict})
 
@@ -97,7 +114,12 @@ def patch_fact(
         raise HTTPException(status_code=409, detail="No new parameters were supplied")
 
     new_fact = facts_collection.find_one({"fact_id": fact_id})
-    return Fact(**new_fact)
+    return Fact(
+                fact_id=new_fact["fact_id"],
+                name=new_fact["name"],
+                description=new_fact["description"],
+                pos=new_fact["pos"]["coordinates"],
+            )
 
 
 @app.put("/facts/{fact_id}", response_model=Fact, tags=["resource:facts"])
@@ -105,7 +127,6 @@ def put_fact(
     fact_id: str, fact: FactWithoutId, settings: Settings = Depends(get_settings)
 ):
     logger.debug(f"updating fact with id {fact_id} with {fact.dict()}")
-    # print(fact.pos, tuple(fact.pos))
     facts_collection = get_collection(settings.mongo_url, "facts")
 
     result = facts_collection.replace_one(
@@ -114,7 +135,7 @@ def put_fact(
             "fact_id": fact_id,
             "name": fact.name,
             "description": fact.description,
-            "pos": fact.pos,
+            "pos": {"type": "Point", "coordinates": fact.pos},
         },
     )
 
@@ -122,7 +143,13 @@ def put_fact(
         raise HTTPException(
             status_code=404, detail="Fact with specified ID was not found"
         )
-    return Fact(fact_id=fact_id, **fact.dict())
+    return Fact(
+                fact_id=fact_id,
+                name=fact.name,
+                description=fact.description,
+                pos=fact.pos,
+            )
+
 
 
 @app.delete("/facts/{fact_id}", tags=["resource:facts"])
@@ -158,7 +185,14 @@ def get_nearest(
     res = []
     for fact in facts:
         try:
-            res.append(Fact(**fact))
+            res.append(Fact
+                        (
+                            fact_id=fact["fact_id"],
+                            name=fact["name"],
+                            description=fact["description"],
+                            pos=fact["pos"]["coordinates"],
+                        )
+                    )
         except Exception as e:
             print(str(e))
     return res
