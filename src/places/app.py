@@ -44,6 +44,9 @@ def post_place(place: Place, settings: Settings = Depends(get_settings)):
 
     if place_with_same_id is not None:
         raise HTTPException(status_code=400, detail="place ID occupied")
+    
+    coordinates = place.pos
+    place.pos = {"type": "Point", "coordinates": coordinates}
 
     place_collection.insert_one(place.dict())
 
@@ -58,7 +61,11 @@ def get_places_by_id(place_id: str, settings: Settings = Depends(get_settings)):
         raise HTTPException(
             status_code=404, detail="Place with specified id was not found"
         )
-    return Place(**place)
+    return Place(
+                    place_id=place["place_id"],
+                    name=place["name"],
+                    pos=place["pos"]["coordinates"],
+                )
 
 
 @app.patch("/places/{place_id}", response_model=Place, tags=["resource:places"])
@@ -82,7 +89,7 @@ def patch_place(
             new_pos[0] = lat
         if lng is not None:
             new_pos[1] = lng
-        new_place_dict["pos"] = tuple(new_pos)
+        new_place_dict["pos"] = {"type": "Point", "coordinates": tuple(new_pos)}
 
     if not new_place_dict:
         raise HTTPException(status_code=409, detail="No new parameters were supplied")
@@ -96,7 +103,11 @@ def patch_place(
             status_code=404, detail="Place with specified ID was not found"
         )
     new_place = places_collection.find_one({"place_id": place_id})
-    return Place(**new_place)
+    return Place(
+                    place_id=new_place["place_id"],
+                    name=new_place["name"],
+                    pos=new_place["pos"]["coordinates"],
+    )
 
 
 @app.put("/places/{place_id}", response_model=Place, tags=["resource:places"])
@@ -105,6 +116,9 @@ def put_place(
 ):
     places_collection = get_collection(settings.mongo_url, "places")
 
+    coordinates = place.pos
+    place.pos = {"type": "Point", "coordinates": coordinates}
+
     res = places_collection.update_one({"place_id": place_id}, {"$set": place.dict()})
 
     if not res.matched_count:
@@ -112,7 +126,11 @@ def put_place(
             status_code=404, detail="Place with specified ID was not found"
         )
     new_place = places_collection.find_one({"place_id": place_id})
-    return Place(**new_place)
+    return Place(
+                    place_id=new_place["place_id"],
+                    name=new_place["name"],
+                    pos=new_place["pos"]["coordinates"],
+    )
 
 
 @app.delete("/places/{place_id}", tags=["resource:places"])
@@ -127,14 +145,14 @@ def delete_place(place_id: str, settings: Settings = Depends(get_settings)):
         )
 
 
-@app.get("/places/near/{lat}/{lng}", response_model=Places, tags=["resource:places"])
+@app.get("/places/near/{lng}/{lat}", response_model=Places, tags=["resource:places"])
 def get_nearest(
     lat: float,
     lng: float,
     max_dist: Optional[float] = 100,
     settings: Settings = Depends(get_settings),
 ):
-    places_collection = get_collection(settings.mongo_url)
+    places_collection = get_collection(settings.mongo_url, "places")
     nearest = places_collection.find({"pos": { "$near" :
           {
             "$geometry" : {
