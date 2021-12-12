@@ -3,6 +3,13 @@ name = "resources"
 version = "0.1.0"
 description = ""
 authors = ["unrndm <unrndm@gmail.com>"]
+packages = [
+    { include = "facts", from = "src" },
+    { include = "media", from = "src" },
+    { include = "places", from = "src" },
+    { include = "quizzes", from = "src" },
+]
+
 
 [tool.poetry.dependencies]
 python = "^3.9"
