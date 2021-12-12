@@ -1,13 +1,21 @@
 from logging import getLogger
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException, Depends, Query
+from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from reusable_mongodb_connection.fastapi import get_collection
 
-from .types import Fact, FactWithoutId, Facts, Position
 from .settings import Settings, get_settings
+from .types import Fact, Facts, FactWithoutId, Position
 
 app = FastAPI(openapi_tags=[{"name": "resource:facts"}])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 logger = getLogger("facts")
 logger.setLevel(get_settings().log_level)
@@ -64,11 +72,11 @@ def get_fact_by_id(fact_id: str, settings: Settings = Depends(get_settings)):
             status_code=404, detail="Fact with specified id was not found"
         )
     return Fact(
-                fact_id=fact["fact_id"],
-                name=fact["name"],
-                description=fact["description"],
-                pos=fact["pos"]["coordinates"],
-            )
+        fact_id=fact["fact_id"],
+        name=fact["name"],
+        description=fact["description"],
+        pos=fact["pos"]["coordinates"],
+    )
 
 
 @app.patch("/facts/{fact_id}", response_model=Fact, tags=["resource:facts"])
@@ -80,12 +88,7 @@ def patch_fact(
     lat: Optional[float] = None,
     settings: Settings = Depends(get_settings),
 ):
-    if (
-        (name is None)
-        and (description is None)
-        and (lat is None)
-        and (lng is None)
-    ):
+    if (name is None) and (description is None) and (lat is None) and (lng is None):
         raise HTTPException(status_code=409, detail="No new parameters were supplied")
 
     facts_collection = get_collection(settings.mongo_url, "facts")
@@ -115,11 +118,11 @@ def patch_fact(
 
     new_fact = facts_collection.find_one({"fact_id": fact_id})
     return Fact(
-                fact_id=new_fact["fact_id"],
-                name=new_fact["name"],
-                description=new_fact["description"],
-                pos=new_fact["pos"]["coordinates"],
-            )
+        fact_id=new_fact["fact_id"],
+        name=new_fact["name"],
+        description=new_fact["description"],
+        pos=new_fact["pos"]["coordinates"],
+    )
 
 
 @app.put("/facts/{fact_id}", response_model=Fact, tags=["resource:facts"])
@@ -144,12 +147,11 @@ def put_fact(
             status_code=404, detail="Fact with specified ID was not found"
         )
     return Fact(
-                fact_id=fact_id,
-                name=fact.name,
-                description=fact.description,
-                pos=fact.pos,
-            )
-
+        fact_id=fact_id,
+        name=fact.name,
+        description=fact.description,
+        pos=fact.pos,
+    )
 
 
 @app.delete("/facts/{fact_id}", tags=["resource:facts"])
@@ -172,27 +174,28 @@ def get_nearest(
     settings: Settings = Depends(get_settings),
 ):
     facts_collection = get_collection(settings.mongo_url, "facts")
-    facts = facts_collection.find({"pos": { "$near" :
-          {
-            "$geometry" : {
-               "type" : "Point" ,
-               "coordinates" : [lng, lat] },
-            "$maxDistance" : max_dist
-          }
-    }
-       })
+    facts = facts_collection.find(
+        {
+            "pos": {
+                "$near": {
+                    "$geometry": {"type": "Point", "coordinates": [lng, lat]},
+                    "$maxDistance": max_dist,
+                }
+            }
+        }
+    )
 
     res = []
     for fact in facts:
         try:
-            res.append(Fact
-                        (
-                            fact_id=fact["fact_id"],
-                            name=fact["name"],
-                            description=fact["description"],
-                            pos=fact["pos"]["coordinates"],
-                        )
-                    )
+            res.append(
+                Fact(
+                    fact_id=fact["fact_id"],
+                    name=fact["name"],
+                    description=fact["description"],
+                    pos=fact["pos"]["coordinates"],
+                )
+            )
         except Exception as e:
             print(str(e))
     return res

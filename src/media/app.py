@@ -1,10 +1,11 @@
 from typing import Optional
 
-from fastapi import FastAPI, Depends
+from fastapi import Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from reusable_mongodb_connection.fastapi import get_collection
 
-from .types import MediaWithoutId, Media, Medias
 from .settings import Settings, get_settings
+from .types import Media, Medias, MediaWithoutId
 
 app = FastAPI(
     openapi_tags=[
@@ -13,6 +14,14 @@ app = FastAPI(
         }
     ]
 )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.get("/media", response_model=Medias, tags=["resource:media"])
 def get_medias(settings: Settings = Depends(get_settings)):
@@ -37,15 +46,16 @@ def get_nearest(
 ):
     media_collection = get_collection(settings.mongo_url, "media")
 
-    nearest = media_collection.find({"pos": { "$near" :
-          {
-            "$geometry" : {
-               "type" : "Point" ,
-               "coordinates" : [lng, lat] },
-            "$maxDistance" : max_dist
-          }
-    }
-       })
+    nearest = media_collection.find(
+        {
+            "pos": {
+                "$near": {
+                    "$geometry": {"type": "Point", "coordinates": [lng, lat]},
+                    "$maxDistance": max_dist,
+                }
+            }
+        }
+    )
 
     res = []
     for media in nearest:
