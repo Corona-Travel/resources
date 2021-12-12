@@ -3,7 +3,6 @@ from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Depends, Query
 from reusable_mongodb_connection.fastapi import get_collection
-from bson.son import SON
 
 from .types import Fact, FactWithoutId, Facts, Position
 from .settings import Settings, get_settings
@@ -155,7 +154,6 @@ def get_nearest(
           }
     }
        })
-    print(facts)
 
     res = []
     for fact in facts:

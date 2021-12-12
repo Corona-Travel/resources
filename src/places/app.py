@@ -1,8 +1,6 @@
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Depends
-from pymongo import GEO2D
-from bson.son import SON
 from reusable_mongodb_connection.fastapi import get_collection
 
 from .types import Place, PlaceWithoutID, Places
@@ -131,10 +129,15 @@ def get_nearest(
     settings: Settings = Depends(get_settings),
 ):
     places_collection = get_collection(settings.mongo_url)
-    places_collection.create_index([("pos", GEO2D)])
-    nearest = places_collection.find(
-        {"pos": SON([("$near", [lat, lng]), ("$maxDistance", max_dist)])}
-    ).limit(3)
+    nearest = places_collection.find({"pos": { "$near" :
+          {
+            "$geometry" : {
+               "type" : "Point" ,
+               "coordinates" : [lng, lat] },
+            "$maxDistance" : max_dist
+          }
+    }
+       })
     res = []
     for place in nearest:
         try:
