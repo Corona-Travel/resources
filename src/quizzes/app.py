@@ -1,6 +1,6 @@
 from typing import Any, Optional
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from reusable_mongodb_connection.fastapi import get_collection
 
@@ -45,13 +45,13 @@ def get_quizzes(settings: Settings = Depends(get_settings)):
     return result
 
 
-@app.post("/quizzes", tags=["resource:quiz"])
+@app.post("/quizzes", tags=["resource:quiz"], responses={400: {"description": "quiz ID occupied"}})
 def add_quiz(quiz: Quiz, settings: Settings = Depends(get_settings)):
     quiz_collection = get_collection(settings.mongo_url, "quizzes")
     check_quiz_id = quiz_collection.find_one({"quiz_id": quiz.quiz_id})
 
     if check_quiz_id is not None:
-        raise HTTPException(status_code=400, detail="quiz ID occupied")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="quiz ID occupied")
 
     coordinates = quiz.pos
     quiz.pos = {"type": "Point", "coordinates": coordinates}
@@ -59,7 +59,7 @@ def add_quiz(quiz: Quiz, settings: Settings = Depends(get_settings)):
     quiz_collection.insert_one(quiz.dict())
 
 
-@app.get("/quizzes/{quiz_id}", response_model=Quiz, tags=["resource:quiz"])
+@app.get("/quizzes/{quiz_id}", response_model=Quiz, tags=["resource:quiz"], responses={404: {"description": "Quiz with specified ID was not found"}})
 def get_quiz(quiz_id: str, settings: Settings = Depends(get_settings)):
     quiz_collection = get_collection(settings.mongo_url, "quizzes")
 
@@ -67,7 +67,7 @@ def get_quiz(quiz_id: str, settings: Settings = Depends(get_settings)):
 
     if quiz is None:
         raise HTTPException(
-            status_code=404, detail="Quiz with specified id was not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Quiz with specified id was not found"
         )
 
     return Quiz(
@@ -78,7 +78,7 @@ def get_quiz(quiz_id: str, settings: Settings = Depends(get_settings)):
     )
 
 
-@app.put("/quizzes/{quiz_id}", response_model=Quiz, tags=["resource:quiz"])
+@app.put("/quizzes/{quiz_id}", response_model=Quiz, tags=["resource:quiz"], responses={404: {"description": "Quiz with specified ID was not found"}})
 def update_quiz(
     quiz_id: str,
     quiz: QuizWithoutId,
@@ -90,7 +90,7 @@ def update_quiz(
 
     if not result.matched_count:
         raise HTTPException(
-            status_code=404, detail="Place with specified ID was not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Quiz with specified ID was not found"
         )
 
     new_quiz = quiz_collection.find_one({"quiz_id": quiz_id})
@@ -102,7 +102,7 @@ def update_quiz(
     )
 
 
-@app.delete("/quizzes/{quiz_id}", tags=["resource:quiz"])
+@app.delete("/quizzes/{quiz_id}", tags=["resource:quiz"], responses={404: {"description": "Quiz with specified ID was not found"}})
 def delete_quiz(quiz_id: str, settings: Settings = Depends(get_settings)):
     quiz_collection = get_collection(settings.mongo_url, "quizzes")
 
@@ -110,7 +110,7 @@ def delete_quiz(quiz_id: str, settings: Settings = Depends(get_settings)):
 
     if not result.deleted_count:
         raise HTTPException(
-            status_code=404, detail="Quiz with specified ID was not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Quiz with specified ID was not found"
         )
 
 
