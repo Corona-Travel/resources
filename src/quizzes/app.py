@@ -10,7 +10,7 @@ from .types import Quiz, QuizWithoutId, Quizzes
 app = FastAPI(
     openapi_tags=[
         {
-            "name": "resource:quiz",
+            "name": "resource:quizzes",
         }
     ]
 )
