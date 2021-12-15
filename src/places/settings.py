@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import Any
 
-from pydantic import BaseSettings, AnyUrl
+from pydantic import AnyUrl, BaseSettings
 
 
 class Settings(BaseSettings):

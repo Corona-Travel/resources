@@ -1,87 +1,12 @@
 networks:
+  frontend:
   backend:
 
 services:
-  facts:
-    build:
-      dockerfile: Dockerfile
-      args:
-        SRC_PATH: ./src/facts
-        APP_PATH: ./facts
-        ASGI_APP: facts.app:app
-    networks:
-      - backend
-    depends_on:
-      mongo:
-        condition: service_healthy
-    environment:
-      MONGO_URL: mongodb://mongo/corona_travel
-      LOG_LEVEL: DEBUG
-    ports:
-      - "1234:1234"
-
-  media:
-    build:
-      dockerfile: Dockerfile
-      args:
-        SRC_PATH: ./src/media
-        APP_PATH: ./media
-        ASGI_APP: media.app:app
-    networks:
-      - backend
-    depends_on:
-      mongo:
-        condition: service_healthy
-    environment:
-      MONGO_URL: mongodb://mongo/corona_travel
-      LOG_LEVEL: DEBUG
-    ports:
-      - "1235:1234"
-
-  places:
-    build:
-      dockerfile: Dockerfile
-      args:
-        SRC_PATH: ./src/places
-        APP_PATH: ./places
-        ASGI_APP: places.app:app
-    networks:
-      - backend
-    depends_on:
-      mongo:
-        condition: service_healthy
-    environment:
-      MONGO_URL: mongodb://mongo/corona_travel
-      LOG_LEVEL: DEBUG
-    ports:
-      - "1236:1234"
-
-  quizes:
-    build:
-      dockerfile: Dockerfile
-      args:
-        SRC_PATH: ./src/quizes
-        APP_PATH: ./quizes
-        ASGI_APP: quizes.app:app
-    networks:
-      - backend
-    depends_on:
-      mongo:
-        condition: service_healthy
-    environment:
-      MONGO_URL: mongodb://mongo/corona_travel
-      LOG_LEVEL: DEBUG
-    ports:
-      - "1237:1234"
-
   mongo:
     image: mongo:5
     networks:
       - backend
-#    environment:
-#      MONGO_INITDB_ROOT_USERNAME: $MONGO_INITDB_ROOT_USERNAME
-#      MONGO_INITDB_ROOT_PASSWORD: $MONGO_INITDB_ROOT_PASSWORD
-#      MONGO_INITDB_DATABASE: $MONGO_INITDB_DATABASE
     volumes:
       - "./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js"
     healthcheck:
@@ -92,4 +17,66 @@ services:
       start_period: 40s
     ports:
       - 27017:27017
+
+  facts:
+    build:
+      dockerfile: ./Dockerfile
+      args:
+        SRC_PATH: "./src/facts"
+        APP_PATH: "./facts"
+        ASGI_APP: "facts.app:app"
+    environment:
+      MONGO_URL: mongodb://mongo/corona_travel
+      LOG_LEVEL: DEBUG
+    networks:
+      - backend
+    ports:
+      - 12341:1234
+
+  media:
+    build:
+      dockerfile: ./Dockerfile
+      args:
+        SRC_PATH: "./src/media"
+        APP_PATH: "./media"
+        ASGI_APP: "media.app:app"
+    environment:
+      MONGO_URL: mongodb://mongo/corona_travel
+      LOG_LEVEL: DEBUG
+    networks:
+      - backend
+    ports:
+      - 12342:1234
+
+  places:
+    build:
+      dockerfile: ./Dockerfile
+      args:
+        SRC_PATH: "./src/places"
+        APP_PATH: "./places"
+        ASGI_APP: "places.app:app"
+    environment:
+      MONGO_URL: mongodb://mongo/corona_travel
+      LOG_LEVEL: DEBUG
+    networks:
+      - backend
+    ports:
+      - 12343:1234
+
+  quizzes:
+    build:
+      dockerfile: ./Dockerfile
+      args:
+        SRC_PATH: "./src/quizzes"
+        APP_PATH: "./quizzes"
+        ASGI_APP: "quizzes.app:app"
+    environment:
+      MONGO_URL: mongodb://mongo/corona_travel
+      LOG_LEVEL: DEBUG
+    networks:
+      - backend
+    ports:
+      - 12344:1234
+
+
 

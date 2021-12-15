@@ -1,10 +1,11 @@
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import Depends, FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from reusable_mongodb_connection.fastapi import get_collection
 
-from .types import Place, PlaceWithoutID, Places
 from .settings import Settings, get_settings
+from .types import Place, Places, PlaceWithoutID
 
 app = FastAPI(
     openapi_tags=[
@@ -13,18 +14,31 @@ app = FastAPI(
         }
     ]
 )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/places", response_model=Places, tags=["resource:places"])
 def get_places(settings: Settings = Depends(get_settings)):
     place_collection = get_collection(settings.mongo_url, "places")
 
-    markers = place_collection.find({})
+    places = place_collection.find({})
 
     res = []
-    for m in markers:
+    for place in places:
         try:
-            res.append(Place(**m))
+            res.append(
+                Place(
+                    place_id=place["place_id"],
+                    name=place["name"],
+                    pos=place["pos"]["coordinates"],
+                )
+            )
         except Exception as e:
             print(str(e))
     return res
@@ -39,6 +53,9 @@ def post_place(place: Place, settings: Settings = Depends(get_settings)):
     if place_with_same_id is not None:
         raise HTTPException(status_code=400, detail="place ID occupied")
 
+    coordinates = place.pos
+    place.pos = {"type": "Point", "coordinates": coordinates}
+
     place_collection.insert_one(place.dict())
 
 
@@ -52,7 +69,11 @@ def get_places_by_id(place_id: str, settings: Settings = Depends(get_settings)):
         raise HTTPException(
             status_code=404, detail="Place with specified id was not found"
         )
-    return Place(**place)
+    return Place(
+        place_id=place["place_id"],
+        name=place["name"],
+        pos=place["pos"]["coordinates"],
+    )
 
 
 @app.patch("/places/{place_id}", response_model=Place, tags=["resource:places"])
@@ -76,7 +97,7 @@ def patch_place(
             new_pos[0] = lat
         if lng is not None:
             new_pos[1] = lng
-        new_place_dict["pos"] = tuple(new_pos)
+        new_place_dict["pos"] = {"type": "Point", "coordinates": tuple(new_pos)}
 
     if not new_place_dict:
         raise HTTPException(status_code=409, detail="No new parameters were supplied")
@@ -90,7 +111,11 @@ def patch_place(
             status_code=404, detail="Place with specified ID was not found"
         )
     new_place = places_collection.find_one({"place_id": place_id})
-    return Place(**new_place)
+    return Place(
+        place_id=new_place["place_id"],
+        name=new_place["name"],
+        pos=new_place["pos"]["coordinates"],
+    )
 
 
 @app.put("/places/{place_id}", response_model=Place, tags=["resource:places"])
@@ -99,6 +124,9 @@ def put_place(
 ):
     places_collection = get_collection(settings.mongo_url, "places")
 
+    coordinates = place.pos
+    place.pos = {"type": "Point", "coordinates": coordinates}
+
     res = places_collection.update_one({"place_id": place_id}, {"$set": place.dict()})
 
     if not res.matched_count:
@@ -106,7 +134,11 @@ def put_place(
             status_code=404, detail="Place with specified ID was not found"
         )
     new_place = places_collection.find_one({"place_id": place_id})
-    return Place(**new_place)
+    return Place(
+        place_id=new_place["place_id"],
+        name=new_place["name"],
+        pos=new_place["pos"]["coordinates"],
+    )
 
 
 @app.delete("/places/{place_id}", tags=["resource:places"])
@@ -119,3 +151,30 @@ def delete_place(place_id: str, settings: Settings = Depends(get_settings)):
         raise HTTPException(
             status_code=404, detail="Place with specified ID was not found"
         )
+
+
+@app.get("/places/near/{lng}/{lat}", response_model=Places, tags=["resource:places"])
+def get_nearest(
+    lat: float,
+    lng: float,
+    max_dist: Optional[float] = 100,
+    settings: Settings = Depends(get_settings),
+):
+    places_collection = get_collection(settings.mongo_url, "places")
+    nearest = places_collection.find(
+        {
+            "pos": {
+                "$near": {
+                    "$geometry": {"type": "Point", "coordinates": [lng, lat]},
+                    "$maxDistance": max_dist,
+                }
+            }
+        }
+    )
+    res = []
+    for place in nearest:
+        try:
+            res.append(Place(**place))
+        except Exception as e:
+            print(str(e))
+    return res
