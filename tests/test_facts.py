@@ -15,18 +15,18 @@ client = TestClient(app)
 
 
 facts = [
-    {
-        "name": "Req Square",
-        "description": "Red Square was built in 16-th century",
-        "fact_id": "moscow_red_sqr",
-        "pos": [55.7446371, 37.5967391],
-    },
-    {
-        "name": "Req Square",
-        "description": "Red Square was built in 16-th century",
-        "fact_id": "moscow_red_sqr",
-        "pas": [55.7446371, 37.5967391],
-    },
+{
+    "name": "Req Square",
+    "description": "Red Square was built in 16-th century",
+    "fact_id": "moscow_red_sqr",
+    "pos": { "type": "Point", "coordinates": [37.620302, 55.754131] },
+  },
+  {
+    "name": "Christ the Saviour Cathedral",
+    "description": "The most important and the largest cathedral in Russia",
+    "fact_id": "moscow_chr_sav_cath",
+    "pos": { "type": "Point", "coordinates": [37.6054939, 55.7446375] },
+  },
 ]
 
 collection = mongomock.MongoClient().db.collection
