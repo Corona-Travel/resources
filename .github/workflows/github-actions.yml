@@ -20,7 +20,8 @@ jobs:
             docker build . --file Dockerfile --tag ${NAME} --label "runnumber=${GITHUB_RUN_ID}" \
             --build-arg SRC_PATH="./src/${NAME}" \
             --build-arg APP_PATH="./${NAME}" \
-            --build-arg ASGI_APP="${NAME}.app:app";
+            --build-arg ASGI_APP="${NAME}.app:app"
+            --build-arg TEST_NAME="test_${NAME}.py";
           done
 
       - name: Log in to registry

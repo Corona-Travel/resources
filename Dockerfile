@@ -17,11 +17,13 @@ RUN poetry install
 ARG SRC_PATH="./src/app"
 ARG APP_PATH="./app"
 ARG ASGI_APP="app:app"
+ARG TEST_NAME="app"
 
 ENV ASGI_APP_ENV=$ASGI_APP
 
 # RUN pip install fastapi uvicorn git+https://github.com/Corona-Travel/reusable_mongodb_connection.git@main
 
 COPY $SRC_PATH $APP_PATH
+COPY ./tests/${TEST_NAME} ./tests/
 
 CMD uvicorn --host 0.0.0.0 --port 1234 --log-level debug $ASGI_APP_ENV
