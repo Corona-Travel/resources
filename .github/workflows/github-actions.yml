@@ -31,8 +31,10 @@ jobs:
           for NAME in $(ls ./src);
           do
             if ! [[ NAME = "resources" ]]; then
-              docker run -d --name $NAME $NAME && \
-              docker exec $NAME pytest --template=html1/index.html --report=report.html
+              docker run -d --name $NAME $NAME;
+              docker exec $NAME pytest --template=html1/index.html --report=report.html;
+              docker stop $NAME;
+              docker container rm $NAME;
             fi
           done
 
