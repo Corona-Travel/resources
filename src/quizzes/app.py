@@ -105,7 +105,7 @@ def update_quiz(
 @app.delete("/quizzes/{quiz_id}", tags=["resource:quiz"], responses={404: {"description": "Quiz with specified ID was not found"}})
 def delete_quiz(quiz_id: str, quiz_collection=Depends(get_mongodb)):
 
-    result = quiz_collection.deleta_one({"quiz_id": quiz_id})
+    result = quiz_collection.delete_one({"quiz_id": quiz_id})
 
     if not result.deleted_count:
         raise HTTPException(
