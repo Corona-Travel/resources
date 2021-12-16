@@ -65,7 +65,7 @@ def post_media(media: Media, media_collection=Depends(get_mongodb)):
 @app.get("/media/{media_id}", response_model=Media, tags=["resource:media"])
 def get_media_by_id(media_id: str, media_collection=Depends(get_mongodb)):
 
-    media = collection.find_one({"media_id": media_id})
+    media = media_collection.find_one({"media_id": media_id})
 
     if media is None:
         raise HTTPException(

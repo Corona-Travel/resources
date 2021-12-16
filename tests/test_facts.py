@@ -28,22 +28,16 @@ facts = [
         "name": "Christ the Saviour Cathedral",
         "description": "The most important and the largest cathedral in Russia",
         "fact_id": "moscow_chr_sav_cath",
-        "pos": { "typefds": "Pointer", "coordinates": "lol"}#[37.6054939, 55.7446375] },
+        "pos": { "type": "Point", "coordinates": [37.6054939, 55.7446375] },
     },
 ]
-
-
-# json_facts = []
-# for fact in facts:
-#     fact["pos"] = fact["pos"]["coordinates"]
-#     json_facts.append(fact)
 
 
 new_fact = {
     "name": "City Hill",
     "description": "City Hill is a five hectare landscaped hill located in the centre of Canberra and surrounded by Vernon Circle",
     "fact_id": "city_hill_Canberra",
-    "pos": { "type": "Pointer", "coordinates": [149.12383, -35.27583] }
+    "pos": [149.12383, -35.27583],
 }
 
 
@@ -51,9 +45,9 @@ collection = mongomock.MongoClient().db.collection
 
 
 for obj in facts:
-    obj_copy = obj.copy()
-    collection.insert_one(obj_copy)
-    collection.update_one(obj_copy, {'$set': {'pos': dict(obj['pos'])}})
+    collection.insert_one(obj)
+    del obj['_id']
+    obj['pos'] = obj['pos']['coordinates']
 
 
 def override_get_mongodb():
@@ -68,17 +62,7 @@ def test_get_facts():
     response = client.get("/facts")
 
     assert response.status_code == 200
-    print(list(collection.find({})))
-    print({
-        "name": "Req Square",
-        "description": "Red Square was built in 16-th century",
-        "fact_id": "moscow_red_sqr",
-        "pos": {
-            "type": "Point",
-            "coordinates": [37.620302, 55.754131],
-        },
-    })
-    assert response.json() == json_facts
+    assert response.json() == facts
 
 
 def test_get_fact_by_id():
@@ -86,7 +70,7 @@ def test_get_fact_by_id():
         response = client.get(f"/facts/{fact['fact_id']}")
 
         assert response.status_code == 200
-        assert response.json() == json_facts
+        assert response.json() == fact
 
 
 def test_post_fact():
@@ -110,3 +94,60 @@ def test_post_duplicat_fact():
     assert response.status_code == 400
     assert response.json() == {"detail": "fact ID occupied"}
 
+
+def test_patch_fact():
+    response = client.patch(
+        f"/facts/{facts[0]['fact_id']}?name={new_fact['name']}"
+    )
+    assert response.status_code == 200
+    copy = facts[0].copy()
+    copy['name'] = new_fact['name']
+    assert response.json() == copy
+
+
+def test_patch_no_changes_fact():
+    response = client.patch(
+        f"/facts/{facts[0]['fact_id']}?name={new_fact['name']}"
+    )
+    assert response.status_code == 409
+    assert response.json() == {"detail": "No new parameters were supplied"}
+
+
+def test_put_fact():
+    copy = new_fact.copy()
+    del copy['fact_id']
+    response = client.put(
+        f"/facts/{facts[0]['fact_id']}",
+        json=copy
+    )
+    copy = new_fact.copy()
+    copy['fact_id'] = facts[0]['fact_id']
+    assert response.status_code == 200
+    assert response.json() == copy
+
+
+def test_put_non_existing_fact():
+    copy = new_fact.copy()
+    del copy['fact_id']
+    response = client.put(
+        f"/facts/12",
+        json=copy
+    )
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Fact with specified ID was not found"}
+
+
+def test_delete_fact():
+    response = client.delete(
+        f"/facts/{facts[0]['fact_id']}",
+    )
+    assert response.status_code == 200
+    assert response.json() == None
+
+
+# def test_near_fact():
+#     response = client.get(
+#         f"/facts/near/37.6054938/55.7446376",
+#     )
+#     assert response.status_code == 200
+#     assert response.json() == list(facts[1])

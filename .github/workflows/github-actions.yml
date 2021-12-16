@@ -17,11 +17,23 @@ jobs:
         run: |
           for NAME in $(ls ./src);
           do
-            docker build . --file Dockerfile --tag ${NAME} --label "runnumber=${GITHUB_RUN_ID}" \
-            --build-arg SRC_PATH="./src/${NAME}" \
-            --build-arg APP_PATH="./${NAME}" \
-            --build-arg ASGI_APP="${NAME}.app:app" \
-            --build-arg TEST_NAME="test_${NAME}.py";
+            if ! [[ NAME = "resources" ]]; then
+              docker build . --file Dockerfile --tag ${NAME} --label "runnumber=${GITHUB_RUN_ID}" \
+              --build-arg SRC_PATH="./src/${NAME}" \
+              --build-arg APP_PATH="./${NAME}" \
+              --build-arg ASGI_APP="${NAME}.app:app" \
+              --build-arg TEST_NAME="test_${NAME}.py";
+            fi
+          done
+
+      - name: Tests
+        run: |
+          for NAME in $(ls ./src);
+          do
+            if ! [[ NAME = "resources" ]]; then
+              docker run -d --name $NAME $NAME && \
+              docker exec $NAME pytest --template=html1/index.html --report=report.html
+            fi
           done
 
       - name: Log in to registry
