@@ -19,28 +19,31 @@ facts = [
         "name": "Req Square",
         "description": "Red Square was built in 16-th century",
         "fact_id": "moscow_red_sqr",
-        "pos": { "type": "Point", "coordinates": [37.620302, 55.754131] },
+        "pos": {
+            "type": "Point",
+            "coordinates": [37.620302, 55.754131],
+        },
     },
     {
         "name": "Christ the Saviour Cathedral",
         "description": "The most important and the largest cathedral in Russia",
         "fact_id": "moscow_chr_sav_cath",
-        "pos": { "type": "Point", "coordinates": [37.6054939, 55.7446375] },
+        "pos": { "typefds": "Pointer", "coordinates": "lol"}#[37.6054939, 55.7446375] },
     },
 ]
 
 
-json_facts = []
-for fact in facts:
-    fact["pos"] = fact["pos"]["coordinates"]
-    json_facts.append(fact)
+# json_facts = []
+# for fact in facts:
+#     fact["pos"] = fact["pos"]["coordinates"]
+#     json_facts.append(fact)
 
 
 new_fact = {
     "name": "City Hill",
     "description": "City Hill is a five hectare landscaped hill located in the centre of Canberra and surrounded by Vernon Circle",
     "fact_id": "city_hill_Canberra",
-    "pos": { "type": "Point", "coordinates": [149.12383, -35.27583] }
+    "pos": { "type": "Pointer", "coordinates": [149.12383, -35.27583] }
 }
 
 
@@ -48,8 +51,9 @@ collection = mongomock.MongoClient().db.collection
 
 
 for obj in facts:
-    collection.insert_one(obj)
-    del obj["_id"]  # for some reason it creates _id key on inserted dict
+    obj_copy = obj.copy()
+    collection.insert_one(obj_copy)
+    collection.update_one(obj_copy, {'$set': {'pos': dict(obj['pos'])}})
 
 
 def override_get_mongodb():
@@ -64,6 +68,16 @@ def test_get_facts():
     response = client.get("/facts")
 
     assert response.status_code == 200
+    print(list(collection.find({})))
+    print({
+        "name": "Req Square",
+        "description": "Red Square was built in 16-th century",
+        "fact_id": "moscow_red_sqr",
+        "pos": {
+            "type": "Point",
+            "coordinates": [37.620302, 55.754131],
+        },
+    })
     assert response.json() == json_facts
 
 
