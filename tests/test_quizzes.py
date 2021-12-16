@@ -204,8 +204,169 @@ def test_post_in_correct_quizzes():
     response = client.post("/quizzes", json=item)
     assert response.status_code == 422
 
+
+def test_put_quiz():
+    expected_quiz = {
+    "name": "Moscow city center",
+    "questions": [
+        {
+        "question":
+            "When  was the beginning of the period of the new heyday of the Red Square?",
+        "answers": [
+            { "option": "12th century", "correct": True },
+            { "option": "19th century", "correct": False },
+            { "option": "20th century", "correct": False },
+        ],
+        },
+        {
+        "question": "When was Lenin's Mausoleum at Red Square opened?",
+        "answers": [
+            { "option": "it is not a Mausoleum", "correct": False },
+            { "option": "1930", "correct": True },
+            { "option": "1941", "correct": False },
+        ],
+        },
+        {
+        "question": "What is GUM famous for among the tourists?",
+        "answers": [
+            { "option": "clothes", "correct": False },
+            { "option": "height of the building", "correct": False },
+            { "option": "ice cream", "correct": True },
+        ],
+        },
+        {
+        "question": "What kind of sport could you do right on the Red Square?",
+        "answers": [
+            { "option": "ice skating", "correct": True },
+            { "option": "golfing", "correct": False },
+            { "option": "swimming", "correct": False },
+        ],
+        },
+        {
+        "question": "What happened on Nikolsakaya street in summer 2018?",
+        "answers": [
+            { "option": "massive football fans' festivities", "correct": True },
+            { "option": "meeting of all presidents", "correct": False },
+            { "option": "Santa Claus party", "correct": False },
+        ],
+        },
+    ],
+    "pos": [37.620795, 55.7539303],
+    }
+    response = client.put("/quizzes/mscw_c", json=expected_quiz)
+    assert response.status_code == 200
+    expected_quiz["quiz_id"] = "mscw_c"
+    assert response.json() == expected_quiz
+
+def test_put_incorrect_quiz():
+    expected_quiz = {
+    "quiz_id": "moscow",
+    "name": "Moscow city center",
+    "questions": [
+        {
+        "question":
+            "When  was the beginning of the period of the new heyday of the Red Square?",
+        "answers": [
+            { "option": "12th century", "correct": True },
+            { "option": "19th century", "correct": False },
+            { "option": "20th century", "correct": False },
+        ],
+        },
+        {
+        "question": "When was Lenin's Mausoleum at Red Square opened?",
+        "answers": [
+            { "option": "it is not a Mausoleum", "correct": False },
+            { "option": "1930", "correct": True },
+            { "option": "1941", "correct": False },
+        ],
+        },
+        {
+        "question": "What is GUM famous for among the tourists?",
+        "answers": [
+            { "option": "clothes", "correct": False },
+            { "option": "height of the building", "correct": False },
+            { "option": "ice cream", "correct": True },
+        ],
+        },
+        {
+        "question": "What kind of sport could you do right on the Red Square?",
+        "answers": [
+            { "option": "ice skating", "correct": True },
+            { "option": "golfing", "correct": False },
+            { "option": "swimming", "correct": False },
+        ],
+        },
+        {
+        "question": "What happened on Nikolsakaya street in summer 2018?",
+        "answers": [
+            { "option": "massive football fans' festivities", "correct": True },
+            { "option": "meeting of all presidents", "correct": False },
+            { "option": "Santa Claus party", "correct": False },
+        ],
+        },
+    ],
+    "pos": { "type": "Point", "coordinates": [37.620795, 55.7539303] },
+    }
+    response = client.put("/quizzes/mscw_c", json=expected_quiz)
+    assert response.status_code == 422
+
+def test_put_non_existing_quiz():
+    expected_quiz = {
+    "name": "Moscow city center",
+    "questions": [
+        {
+        "question":
+            "When  was the beginning of the period of the new heyday of the Red Square?",
+        "answers": [
+            { "option": "12th century", "correct": True },
+            { "option": "19th century", "correct": False },
+            { "option": "20th century", "correct": False },
+        ],
+        },
+        {
+        "question": "When was Lenin's Mausoleum at Red Square opened?",
+        "answers": [
+            { "option": "it is not a Mausoleum", "correct": False },
+            { "option": "1930", "correct": True },
+            { "option": "1941", "correct": False },
+        ],
+        },
+        {
+        "question": "What is GUM famous for among the tourists?",
+        "answers": [
+            { "option": "clothes", "correct": False },
+            { "option": "height of the building", "correct": False },
+            { "option": "ice cream", "correct": True },
+        ],
+        },
+        {
+        "question": "What kind of sport could you do right on the Red Square?",
+        "answers": [
+            { "option": "ice skating", "correct": True },
+            { "option": "golfing", "correct": False },
+            { "option": "swimming", "correct": False },
+        ],
+        },
+        {
+        "question": "What happened on Nikolsakaya street in summer 2018?",
+        "answers": [
+            { "option": "massive football fans' festivities", "correct": True },
+            { "option": "meeting of all presidents", "correct": False },
+            { "option": "Santa Claus party", "correct": False },
+        ],
+        },
+    ],
+    "pos": [37.620795, 55.7539303],
+    }
+    response = client.put("/quizzes/dofo", json=expected_quiz)
+    assert response.status_code == 404
+
 def test_delete_quizzes():
     response = client.delete("/quizzes/mscw_h")
     assert response.status_code == 200
-    response = client.get("/quizzes/mscw_c")
+    response = client.get("/quizzes/mscw_h")
+    assert response.status_code == 404
+
+def test_delete_non_existing_quiz():
+    response = client.delete("/quizzes/mscw_h")
     assert response.status_code == 404
