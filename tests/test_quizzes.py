@@ -152,7 +152,7 @@ def test_post_quizzes():
     assert response.status_code == 200
     assert response.json() == item
 
-def test_post_in"correct"_quizzes():
+def test_post_in_correct_quizzes():
     item = {
         "quiz_id": "mscw_h",
   "name": "Moscow history",

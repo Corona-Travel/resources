@@ -35,7 +35,14 @@ media = [
     "type": "photo",
     "pos": { "type": "Point", "coordinates": [37.623925, 55.754277] },
     "url": "http://www.robertodemicheli.com/album_test/index.html?folder=Architecture/&file=IMG_2060.jpg",
-  }
+  },
+  {
+    "media_id": "GUM_sound",
+    "name": "GUM people",
+    "type": "audio",
+    "pos": { "type": "Point", "coordinates": [-37.6225106, -55.753579] },
+    "url": "https://cdn.pixabay.com/download/audio/2021/11/25/audio_91b32e02f9.mp3?filename=jazzy-abstract-beat-11254.mp3",
+  },
 ]
 
 collection = mongomock.MongoClient().db.collection
@@ -59,7 +66,7 @@ def test_get_media():
     response = client.get("/media")
 
     assert response.status_code == 200
-    assert response.json() == [media[0], media[2]]
+    assert response.json() == [media[0], media[2], media[3]]
 
 def test_get_one_media():
     response = client.get("/media/red_sq_photo")
@@ -99,4 +106,43 @@ def test_delete_media():
     response = client.delete("/media/gostinyy_dvor")
     assert response.status_code == 200
     response = client.get("/media/gostinyy_dvor")
+    assert response.status_code == 404
+
+def test_delete_non_existing_media():
+    response = client.delete("/media/ghjshd")
+    assert response.status_code == 404
+
+def test_put_media():
+    expected_media = {
+        "name": "Red Square",
+        "type": "photo",
+        "pos": [37.5967391, 55.7446371],
+        "url": "new_url",
+    }
+    response = client.put("/media/red_sq_photo", json=expected_media)
+    assert response.status_code == 200
+    expected_media["media_id"] = "red_sq_photo"
+    response = client.get("/media/red_sq_photo")
+    assert response.status_code == 200
+    assert response.json() == expected_media
+
+def test_put_incorrect_media():
+    incorrect_media = {
+        "media_id": "jdh",
+        "name": "Red Square",
+        "typo": "photo",
+        "pos": [37.5967391, 55.7446371],
+        "url": "new_url",
+    }
+    response = client.put("/media/red_sq_photo", json=incorrect_media)
+    assert response.status_code == 422
+
+def test_put_non_existing_media():
+    incorrect_media = {
+        "name": "Red Square",
+        "type": "photo",
+        "pos": [37.5967391, 55.7446371],
+        "url": "new_url",
+    }
+    response = client.put("/media/not_ex", json=incorrect_media)
     assert response.status_code == 404
