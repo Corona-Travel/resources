@@ -105,42 +105,42 @@ def test_post_quizzes():
     {
       "question": "When were the first written mentions about Moscow made?",
       "answers": [
-        { "option": "In the XI century", correct: False },
-        { "option": "In the XII century", correct: True },
-        { "option": "In the XV century", correct: False },
+        { "option": "In the XI century", "correct": False },
+        { "option": "In the XII century", "correct": True },
+        { "option": "In the XV century", "correct": False },
       ],
     },
     {
       "question": "When did Moscow become the capital of Russia?",
       "answers": [
-        { "option": "In 1200", correct: False },
-        { "option": "In 1340", correct: True },
-        { "option": "In 1147", correct: False },
+        { "option": "In 1200", "correct": False },
+        { "option": "In 1340", "correct": True },
+        { "option": "In 1147", "correct": False },
       ],
     },
     {
       "question": "When did Moscow become the capital of the Soviet state?",
       "answers": [
-        { "option": "1931", correct: False },
-        { "option": "1925", correct: False },
-        { "option": "1922", correct: True },
+        { "option": "1931", "correct": False },
+        { "option": "1925", "correct": False },
+        { "option": "1922", "correct": True },
       ],
     },
     {
       "question":
         "The only sculptured monument on the square is a bronze statue of:",
       "answers": [
-        { "option": "Kuzma Minin and Dmitry Pozharsky", correct: True },
-        { "option": "Tsar Nicholas and Empress Alexandra", correct: False },
-        { "option": "Ivan III", correct: False },
+        { "option": "Kuzma Minin and Dmitry Pozharsky", "correct": True },
+        { "option": "Tsar Nicholas and Empress Alexandra", "correct": False },
+        { "option": "Ivan III", "correct": False },
       ],
     },
     {
       "question": "When did Moscow host the summer Olympic games?",
       "answers": [
-        { "option": "In 1980", correct: True },
-        { "option": "In 1978", correct: False },
-        { "option": "In 1970", correct: False },
+        { "option": "In 1980", "correct": True },
+        { "option": "In 1978", "correct": False },
+        { "option": "In 1970", "correct": False },
       ],
     },
   ],
@@ -152,7 +152,7 @@ def test_post_quizzes():
     assert response.status_code == 200
     assert response.json() == item
 
-def test_post_incorrect_quizzes():
+def test_post_in_correct_quizzes():
     item = {
         "quiz_id": "mscw_h",
   "name": "Moscow history",
@@ -160,42 +160,42 @@ def test_post_incorrect_quizzes():
     {
       "question": "When were the first written mentions about Moscow made?",
       "answers": [
-        { "option": "In the XI century", correct: False },
-        { "option": "In the XII century", correct: True },
-        { "option": "In the XV century", correct: False },
+        { "option": "In the XI century", "correct": False },
+        { "option": "In the XII century", "correct": True },
+        { "option": "In the XV century", "correct": False },
       ],
     },
     {
       "question": "When did Moscow become the capital of Russia?",
       "answers": [
-        { "option": "In 1200", correct: False },
-        { "option": "In 1340", correct: True },
-        { "option": "In 1147", correct: False },
+        { "option": "In 1200", "correct": False },
+        { "option": "In 1340", "correct": True },
+        { "option": "In 1147", "correct": False },
       ],
     },
     {
       "question": "When did Moscow become the capital of the Soviet state?",
       "answers": [
-        { "option": "1931", correct: False },
-        { "option": "1925", correct: False },
-        { "option": "1922", correct: True },
+        { "option": "1931", "correct": False },
+        { "option": "1925", "correct": False },
+        { "option": "1922", "correct": True },
       ],
     },
     {
       "question":
         "The only sculptured monument on the square is a bronze statue of:",
       "answers": [
-        { "option": "Kuzma Minin and Dmitry Pozharsky", correct: True },
-        { "option": "Tsar Nicholas and Empress Alexandra", correct: False },
-        { "option": "Ivan III", correct: False },
+        { "option": "Kuzma Minin and Dmitry Pozharsky", "correct": True },
+        { "option": "Tsar Nicholas and Empress Alexandra", "correct": False },
+        { "option": "Ivan III", "correct": False },
       ],
     },
     {
       "question": "When did Moscow host the summer Olympic games?",
       "answers": [
-        { "option": "In 1980", correct: True },
-        { "option": "In 1978", correct: False },
-        { "option": "In 1970", correct: False },
+        { "option": "In 1980", "correct": True },
+        { "option": "In 1978", "correct": False },
+        { "option": "In 1970", "correct": False },
       ],
     },
   ],
