@@ -26,18 +26,6 @@ jobs:
             fi
           done
 
-      - name: Tests
-        run: |
-          for NAME in $(ls ./src);
-          do
-            if ! [[ NAME = "resources" ]]; then
-              docker run -d --name $NAME $NAME;
-              docker exec $NAME pytest --template=html1/index.html --report=report.html;
-              docker stop $NAME;
-              docker container rm $NAME;
-            fi
-          done
-
       - name: Log in to registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
