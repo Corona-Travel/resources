@@ -23,9 +23,12 @@ app.add_middleware(
 )
 
 
+def get_mongodb(settings: Settings = Depends(get_settings)):
+    return get_collection(settings.mongo_url, "media")
+
+
 @app.get("/media", response_model=Medias, tags=["resource:media"])
-def get_medias(settings: Settings = Depends(get_settings)):
-    media_collection = get_collection(settings.mongo_url, "media")
+def get_medias(media_collection=Depends(get_mongodb)):
     medias = media_collection.find({})
 
     res = []
@@ -46,8 +49,7 @@ def get_medias(settings: Settings = Depends(get_settings)):
 
 
 @app.post("/media", tags=["resource:media"])
-def post_media(media: Media, settings: Settings = Depends(get_settings)):
-    media_collection = get_collection(settings.mongo_url, "media")
+def post_media(media: Media, media_collection=Depends(get_mongodb)):
 
     media_with_same_id = media_collection.find_one({"media_id": media.media_id})
 
@@ -61,10 +63,9 @@ def post_media(media: Media, settings: Settings = Depends(get_settings)):
 
 
 @app.get("/media/{media_id}", response_model=Media, tags=["resource:media"])
-def get_media_by_id(media_id: str, settings: Settings = Depends(get_settings)):
-    collection = get_collection(settings.mongo_url, "media")
+def get_media_by_id(media_id: str, media_collection=Depends(get_mongodb)):
 
-    media = collection.find_one({"media_id": media_id})
+    media = media_collection.find_one({"media_id": media_id})
 
     if media is None:
         raise HTTPException(
@@ -86,9 +87,8 @@ def patch_place(
     url: Optional[str] = None,
     lat: Optional[float] = None,
     lng: Optional[float] = None,
-    settings: Settings = Depends(get_settings),
+    media_collection=Depends(get_mongodb),
 ):
-    media_collection = get_collection(settings.mongo_url, "media")
 
     old_pos = media_collection.find_one({"media_id": media_id})["pos"]
 
@@ -128,9 +128,8 @@ def patch_place(
 
 @app.put("/media/{media_id}", response_model=Media, tags=["resource:media"])
 def put_place(
-    media_id: str, media: MediaWithoutId, settings: Settings = Depends(get_settings)
+    media_id: str, media: MediaWithoutId, media_collection=Depends(get_mongodb)
 ):
-    media_collection = get_collection(settings.mongo_url, "media")
 
     coordinates = media.pos
     media.pos = {"type": "Point", "coordinates": coordinates}
@@ -152,8 +151,7 @@ def put_place(
 
 
 @app.delete("/media/{media_id}", tags=["resource:media"])
-def delete_place(media_id: str, settings: Settings = Depends(get_settings)):
-    media_collection = get_collection(settings.mongo_url, "media")
+def delete_place(media_id: str, media_collection=Depends(get_mongodb)):
 
     res = media_collection.delete_one({"media_id": media_id})
 
@@ -168,9 +166,8 @@ def get_nearest(
     lng: float,
     lat: float,
     max_dist: Optional[float] = 10000,
-    settings: Settings = Depends(get_settings),
+    media_collection=Depends(get_mongodb),
 ):
-    media_collection = get_collection(settings.mongo_url, "media")
 
     nearest = media_collection.find(
         {

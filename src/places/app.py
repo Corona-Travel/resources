@@ -23,9 +23,12 @@ app.add_middleware(
 )
 
 
+def get_mongodb(settings: Settings = Depends(get_settings)):
+    return get_collection(settings.mongo_url, "places")
+
+
 @app.get("/places", response_model=Places, tags=["resource:places"])
-def get_places(settings: Settings = Depends(get_settings)):
-    place_collection = get_collection(settings.mongo_url, "places")
+def get_places(place_collection=Depends(get_mongodb)):
 
     places = place_collection.find({})
 
@@ -45,8 +48,7 @@ def get_places(settings: Settings = Depends(get_settings)):
 
 
 @app.post("/places", tags=["resource:places"])
-def post_place(place: Place, settings: Settings = Depends(get_settings)):
-    place_collection = get_collection(settings.mongo_url, "places")
+def post_place(place: Place, place_collection=Depends(get_mongodb)):
 
     place_with_same_id = place_collection.find_one({"place_id": place.place_id})
 
@@ -60,10 +62,9 @@ def post_place(place: Place, settings: Settings = Depends(get_settings)):
 
 
 @app.get("/places/{place_id}", response_model=Place, tags=["resource:places"])
-def get_places_by_id(place_id: str, settings: Settings = Depends(get_settings)):
-    collection = get_collection(settings.mongo_url, "places")
+def get_places_by_id(place_id: str, place_collection=Depends(get_mongodb)):
 
-    place = collection.find_one({"place_id": place_id})
+    place = place_collection.find_one({"place_id": place_id})
 
     if place is None:
         raise HTTPException(
@@ -82,11 +83,10 @@ def patch_place(
     name: Optional[str] = None,
     lat: Optional[float] = None,
     lng: Optional[float] = None,
-    settings: Settings = Depends(get_settings),
+    place_collection=Depends(get_mongodb),
 ):
-    places_collection = get_collection(settings.mongo_url, "places")
 
-    old_pos = places_collection.find_one({"place_id": place_id})["pos"]
+    old_pos = place_collection.find_one({"place_id": place_id})["pos"]
 
     new_place_dict = {}
     if name is not None:
@@ -102,7 +102,7 @@ def patch_place(
     if not new_place_dict:
         raise HTTPException(status_code=409, detail="No new parameters were supplied")
 
-    res = places_collection.update_one({"place_id": place_id}, {"$set": new_place_dict})
+    res = place_collection.update_one({"place_id": place_id}, {"$set": new_place_dict})
 
     if not res.modified_count:
         raise HTTPException(status_code=409, detail="No new parameters were supplied")
@@ -110,7 +110,7 @@ def patch_place(
         raise HTTPException(
             status_code=404, detail="Place with specified ID was not found"
         )
-    new_place = places_collection.find_one({"place_id": place_id})
+    new_place = place_collection.find_one({"place_id": place_id})
     return Place(
         place_id=new_place["place_id"],
         name=new_place["name"],
@@ -120,20 +120,19 @@ def patch_place(
 
 @app.put("/places/{place_id}", response_model=Place, tags=["resource:places"])
 def put_place(
-    place_id: str, place: PlaceWithoutID, settings: Settings = Depends(get_settings)
+    place_id: str, place: PlaceWithoutID, place_collection=Depends(get_mongodb)
 ):
-    places_collection = get_collection(settings.mongo_url, "places")
 
     coordinates = place.pos
     place.pos = {"type": "Point", "coordinates": coordinates}
 
-    res = places_collection.update_one({"place_id": place_id}, {"$set": place.dict()})
+    res = place_collection.update_one({"place_id": place_id}, {"$set": place.dict()})
 
     if not res.matched_count:
         raise HTTPException(
             status_code=404, detail="Place with specified ID was not found"
         )
-    new_place = places_collection.find_one({"place_id": place_id})
+    new_place = place_collection.find_one({"place_id": place_id})
     return Place(
         place_id=new_place["place_id"],
         name=new_place["name"],
@@ -142,10 +141,9 @@ def put_place(
 
 
 @app.delete("/places/{place_id}", tags=["resource:places"])
-def delete_place(place_id: str, settings: Settings = Depends(get_settings)):
-    places_collection = get_collection(settings.mongo_url, "places")
+def delete_place(place_id: str, place_collection=Depends(get_mongodb)):
 
-    res = places_collection.delete_one({"place_id": place_id})
+    res = place_collection.delete_one({"place_id": place_id})
 
     if not res.deleted_count:
         raise HTTPException(
@@ -158,10 +156,9 @@ def get_nearest(
     lat: float,
     lng: float,
     max_dist: Optional[float] = 100,
-    settings: Settings = Depends(get_settings),
+    place_collection=Depends(get_mongodb),
 ):
-    places_collection = get_collection(settings.mongo_url, "places")
-    nearest = places_collection.find(
+    nearest = place_collection.find(
         {
             "pos": {
                 "$near": {

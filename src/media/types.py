@@ -9,6 +9,7 @@ class Position(NamedTuple):
     lat: float
 
 
+
 class MediaType(str, Enum):
     photo = "photo"
     audio = "audio"
@@ -20,6 +21,7 @@ class MediaWithoutId(BaseModel):
     type: MediaType
     pos: Position
     url: str
+
 
 
 class Media(MediaWithoutId):

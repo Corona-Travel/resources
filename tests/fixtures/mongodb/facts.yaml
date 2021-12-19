@@ -1,0 +1,9 @@
+- name: Moscow
+  place_id: moscow
+  pos: [55.749792, 37.632495]
+- name: Madrid
+  place_id: madrid
+  pos: [40.416775, -3.703790]
+- name: New York
+  place_id: ny
+  pos: [40.730610, -73.935242]

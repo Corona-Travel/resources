@@ -23,9 +23,12 @@ app.add_middleware(
 )
 
 
+def get_mongodb(settings: Settings = Depends(get_settings)):
+    return get_collection(settings.mongo_url, "quizzes")
+
+
 @app.get("/quizzes", response_model=Quizzes, tags=["resource:quiz"])
-def get_quizzes(settings: Settings = Depends(get_settings)):
-    quiz_collection = get_collection(settings.mongo_url, "quizzes")
+def get_quizzes(quiz_collection=Depends(get_mongodb)):
 
     quizzes = quiz_collection.find({})
 
@@ -46,8 +49,7 @@ def get_quizzes(settings: Settings = Depends(get_settings)):
 
 
 @app.post("/quizzes", tags=["resource:quiz"], responses={400: {"description": "quiz ID occupied"}})
-def add_quiz(quiz: Quiz, settings: Settings = Depends(get_settings)):
-    quiz_collection = get_collection(settings.mongo_url, "quizzes")
+def add_quiz(quiz: Quiz, quiz_collection=Depends(get_mongodb)):
     check_quiz_id = quiz_collection.find_one({"quiz_id": quiz.quiz_id})
 
     if check_quiz_id is not None:
@@ -60,8 +62,7 @@ def add_quiz(quiz: Quiz, settings: Settings = Depends(get_settings)):
 
 
 @app.get("/quizzes/{quiz_id}", response_model=Quiz, tags=["resource:quiz"], responses={404: {"description": "Quiz with specified ID was not found"}})
-def get_quiz(quiz_id: str, settings: Settings = Depends(get_settings)):
-    quiz_collection = get_collection(settings.mongo_url, "quizzes")
+def get_quiz(quiz_id: str, quiz_collection=Depends(get_mongodb)):
 
     quiz = quiz_collection.find_one({"quiz_id": quiz_id})
 
@@ -82,9 +83,8 @@ def get_quiz(quiz_id: str, settings: Settings = Depends(get_settings)):
 def update_quiz(
     quiz_id: str,
     quiz: QuizWithoutId,
-    settings: Settings = Depends(get_settings),
+    quiz_collection=Depends(get_mongodb),
 ):
-    quiz_collection = get_collection(settings.mongo_url, "quizzes")
 
     result = quiz_collection.update_one({"quiz_id": quiz_id}, {"$set": quiz.dict()})
 
@@ -103,10 +103,9 @@ def update_quiz(
 
 
 @app.delete("/quizzes/{quiz_id}", tags=["resource:quiz"], responses={404: {"description": "Quiz with specified ID was not found"}})
-def delete_quiz(quiz_id: str, settings: Settings = Depends(get_settings)):
-    quiz_collection = get_collection(settings.mongo_url, "quizzes")
+def delete_quiz(quiz_id: str, quiz_collection=Depends(get_mongodb)):
 
-    result = quiz_collection.deleta_one({"quiz_id": quiz_id})
+    result = quiz_collection.delete_one({"quiz_id": quiz_id})
 
     if not result.deleted_count:
         raise HTTPException(
@@ -123,9 +122,8 @@ def get_nearest(
     lng: float,
     lat: float,
     max_dist: Optional[float] = 10000,
-    settings: Settings = Depends(get_settings),
+    quiz_collection=Depends(get_mongodb),
 ):
-    quiz_collection = get_collection(settings.mongo_url, "quizzes")
     nearest = quiz_collection.find(
         {
             "pos": {

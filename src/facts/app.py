@@ -21,9 +21,12 @@ logger = getLogger("facts")
 logger.setLevel(get_settings().log_level)
 
 
+def get_mongodb(settings: Settings = Depends(get_settings)):
+    return get_collection(settings.mongo_url, "facts")
+
+
 @app.get("/facts", response_model=Facts, tags=["resource:facts"])
-def get_facts(settings: Settings = Depends(get_settings)):
-    facts_collection = get_collection(settings.mongo_url, "facts")
+def get_facts(facts_collection=Depends(get_mongodb)):
     facts = facts_collection.find({})
 
     logger.debug("getting facts: %s", facts)
@@ -45,8 +48,10 @@ def get_facts(settings: Settings = Depends(get_settings)):
 
 
 @app.post("/facts", tags=["resource:facts"])
-def post_fact(fact: Fact, settings: Settings = Depends(get_settings)):
-    facts_collection = get_collection(settings.mongo_url, "facts")
+def post_fact(
+    fact: Fact,
+    facts_collection = Depends(get_mongodb),
+):
 
     print(fact.dict())
 
@@ -62,9 +67,7 @@ def post_fact(fact: Fact, settings: Settings = Depends(get_settings)):
 
 
 @app.get("/facts/{fact_id}", response_model=Fact, tags=["resource:facts"])
-def get_fact_by_id(fact_id: str, settings: Settings = Depends(get_settings)):
-    facts_collection = get_collection(settings.mongo_url, "facts")
-
+def get_fact_by_id(fact_id: str, facts_collection=Depends(get_mongodb)):
     fact = facts_collection.find_one({"fact_id": fact_id})
 
     if fact is None:
@@ -86,12 +89,11 @@ def patch_fact(
     description: Optional[str] = None,
     lng: Optional[float] = None,
     lat: Optional[float] = None,
-    settings: Settings = Depends(get_settings),
+    facts_collection = Depends(get_mongodb),
 ):
     if (name is None) and (description is None) and (lat is None) and (lng is None):
         raise HTTPException(status_code=409, detail="No new parameters were supplied")
 
-    facts_collection = get_collection(settings.mongo_url, "facts")
     old_fact_pos = facts_collection.find_one({"fact_id": fact_id})["pos"]
 
     new_fact_dict = {}
@@ -127,10 +129,9 @@ def patch_fact(
 
 @app.put("/facts/{fact_id}", response_model=Fact, tags=["resource:facts"])
 def put_fact(
-    fact_id: str, fact: FactWithoutId, settings: Settings = Depends(get_settings)
+    fact_id: str, fact: FactWithoutId, facts_collection = Depends(get_mongodb)
 ):
     logger.debug(f"updating fact with id {fact_id} with {fact.dict()}")
-    facts_collection = get_collection(settings.mongo_url, "facts")
 
     result = facts_collection.replace_one(
         {"fact_id": fact_id},
@@ -155,8 +156,7 @@ def put_fact(
 
 
 @app.delete("/facts/{fact_id}", tags=["resource:facts"])
-def delete_fact(fact_id: str, settings: Settings = Depends(get_settings)):
-    facts_collection = get_collection(settings.mongo_url, "facts")
+def delete_fact(fact_id: str, facts_collection = Depends(get_mongodb)):
 
     res = facts_collection.delete_one({"fact_id": fact_id})
 
@@ -171,9 +171,8 @@ def get_nearest(
     lng: float,
     lat: float,
     max_dist: Optional[float] = 10000,
-    settings: Settings = Depends(get_settings),
+    facts_collection = Depends(get_mongodb),
 ):
-    facts_collection = get_collection(settings.mongo_url, "facts")
     facts = facts_collection.find(
         {
             "pos": {

@@ -11,9 +11,17 @@ fastapi = "^0.70.0"
 pydantic = {extras = ["dotenv"], version = "^1.8.2"}
 reusable_mongodb_connection = { git = "https://github.com/Corona-Travel/reusable_mongodb_connection.git", branch = "main", extras = ["fastapi"] }
 pymongo = "^3.12.1"
+pytest-reporter-html1 = "^0.8.2"
+coverage = "^6.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
+requests = "^2.26.0"
+mongomock = "^3.23.0"
+
+[tool.pytest.ini_options]
+mongodb_fixture_dir = "tests/fixtures/mongodb"
+
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
